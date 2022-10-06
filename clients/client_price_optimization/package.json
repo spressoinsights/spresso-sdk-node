@@ -1,6 +1,6 @@
 {
     "name": "@spresso-sdk/price_optimization",
-    "version": "1.1.17",
+    "version": "0.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -16,8 +16,8 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/cache": "*",
-        "@spresso-sdk/http_client_org": "*",
+        "@spresso-sdk/cache": "file:../packages/cache",
+        "@spresso-sdk/http_client_org": "file:../packages/http_client_org",
         "tslib": "^2.3.1"
     },
     "devDependencies": {

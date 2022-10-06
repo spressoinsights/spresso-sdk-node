@@ -17,7 +17,7 @@ export class Authenticator {
     private localAccessToken: LocalAccessToken | undefined;
 
     // Have a 5 minutes window to refresh the token before it expires.
-    private readonly credentialsExpireWindowInMilliSeconds = 300000;
+    private readonly credentialsExpireWindowMs = 300000;
 
     constructor(options: { clientId: string; clientSecret: string }) {
         this.httpClient = new HttpClient();
@@ -28,7 +28,7 @@ export class Authenticator {
     public async getAccessToken(): Promise<string> {
         if (
             this.localAccessToken == undefined ||
-            this.localAccessToken.expiresIn.getTime() - Date.now() <= this.credentialsExpireWindowInMilliSeconds
+            this.localAccessToken.expiresIn.getTime() - Date.now() <= this.credentialsExpireWindowMs
         ) {
             await this.getAndSaveAccessTokenLocally();
         }
