@@ -1,5 +1,8 @@
 install:
 	npm install
+
+installForE2ETesting:
+	cd tests/e2e && npm run installFromLocalRegistry
 bootstrap:
 	npm run bootstrap
 build:
