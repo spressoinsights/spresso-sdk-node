@@ -15,10 +15,10 @@ jobs:
         nix_path: nixpkgs=channel:nixos-22.05
     - name: Deploy to minikube
       run:
-        nix-shell --command "make -f ./command -j1 StartServices"
+        nix-shell --command "make -f ./command StartServices"
     - name: Install
       run:
-        nix-shell --command "make -f ./command -j1 install"
+        nix-shell --command "make -f ./command install"
     - name: Local Publish
       run:
-        nix-shell --command "make -f ./command -j1 localPublish"
+        nix-shell --command "make -f ./command localPublish"
