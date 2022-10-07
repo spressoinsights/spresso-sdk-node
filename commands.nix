@@ -3,6 +3,8 @@ install:
 
 installForE2ETesting:
 	cd tests/e2e && npm run installFromLocalRegistry
+e2eTesting:
+	cd tests/e2e && npx mocha "./**/**.test.ts"
 bootstrap:
 	npm run bootstrap
 build:

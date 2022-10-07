@@ -1,24 +1,25 @@
 name: CI
 on:
-  - pull_request
+    - pull_request
 jobs:
-  job1:
-    runs-on: ubuntu-latest
-    name: build example and deploy to minikube
-    steps:
-    - uses: actions/checkout@v2
-    - name: Start minikube
-      uses: medyagh/setup-minikube@master
-    - name: Install Nix Package Manager
-      uses: cachix/install-nix-action@v15
-      with:
-        nix_path: nixpkgs=channel:nixos-22.05
-    - name: Deploy to minikube
-      run:
-        nix-shell --command "make -f ./commands.nix startServicesCI"
-    - name: Install
-      run:
-        nix-shell --command "make -f ./commands.nix install"
-    - name: Local Publish
-      run:
-        nix-shell --command "make -f ./commands.nix localPublish"
+    job1:
+        runs-on: ubuntu-latest
+        name: E2E Testing
+        steps:
+            - uses: actions/checkout@v2
+            - name: Start minikube
+              uses: medyagh/setup-minikube@master
+            - name: Install Nix Package Manager
+              uses: cachix/install-nix-action@v15
+              with:
+                  nix_path: nixpkgs=channel:nixos-22.05
+            - name: Deploy to minikube
+              run: nix-shell --command "make -f ./commands.nix startServicesCI"
+            - name: Install
+              run: nix-shell --command "make -f ./commands.nix install"
+            - name: Local Publish
+              run: nix-shell --command "make -f ./commands.nix localPublish"
+            - name: E2E Testing
+              run: |
+                  nix-shell --command "make -f ./commands.nix installForE2ETesting"
+                  nix-shell --command "make -f ./commands.nix e2eTesting
