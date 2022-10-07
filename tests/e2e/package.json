@@ -1,0 +1,16 @@
+{
+    "name": "spresso-sdk-e2e",
+    "private": true,
+    "version": "1.0.0",
+    "description": "End to End testing for Spresso-SDK.",
+    "main": "index.js",
+    "scripts": {
+        "install": "npm install --registry http://localhost:4873"
+    },
+    "devDependencies": {
+        "typescript": "4.7.2"
+    },
+    "dependencies": {
+        "@spresso-sdk/price_optimization_0.0": "npm:@spresso-sdk/price_optimization@^0.0.0"
+    }
+}
