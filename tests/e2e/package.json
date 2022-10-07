@@ -11,6 +11,6 @@
         "typescript": "4.7.2"
     },
     "dependencies": {
-        "@spresso-sdk/price_optimization_0.0": "npm:@spresso-sdk/price_optimization@^0.0.2"
+        "@spresso-sdk/price_optimization_1.0": "npm:@spresso-sdk/price_optimization@^1.0.0"
     }
 }

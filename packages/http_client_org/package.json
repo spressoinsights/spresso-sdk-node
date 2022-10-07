@@ -1,6 +1,6 @@
 {
     "name": "@spresso-sdk/http_client_org",
-    "version": "0.0.1",
+    "version": "1.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -16,8 +16,8 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/auth": "*",
-        "@spresso-sdk/http_client": "*"
+        "@spresso-sdk/auth": "^1.0.1",
+        "@spresso-sdk/http_client": "^1.0.1"
     },
     "devDependencies": {
         "concurrently": "7.0.0"
