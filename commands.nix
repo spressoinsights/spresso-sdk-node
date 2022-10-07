@@ -19,7 +19,7 @@ startMinikube:
 	sleep 5
 minikubeDashboard:
 	minikube dashboard
-startServicesLocal: StartMinikube
+startServicesLocal: startMinikube
 	make -f ./commands.nix -j 1 startVerdaccioMinikubeLocal
 startVerdaccioMinikubeLocal:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
