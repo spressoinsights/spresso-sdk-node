@@ -2,6 +2,7 @@
     "name": "spresso-sdk-node",
     "description": "Spresso SDK for Node",
     "sideEffects": false,
+    "private": true,
     "scripts": {
         "prepare": "husky install",
         "bootstrap": "lerna bootstrap",
@@ -20,6 +21,7 @@
     ],
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "5.29.0",
+        "@typescript-eslint/parser": "5.39.0",
         "eslint": "8.18.0",
         "eslint-config-prettier": "8.5.0",
         "eslint-import-resolver-typescript": "2.7.1",

@@ -16,8 +16,8 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/auth": "file:../packages/auth",
-        "@spresso-sdk/http_client": "file:../packages/http_client"
+        "@spresso-sdk/auth": "*",
+        "@spresso-sdk/http_client": "*"
     },
     "devDependencies": {
         "concurrently": "7.0.0",

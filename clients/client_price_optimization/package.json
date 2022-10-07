@@ -16,8 +16,8 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/cache": "file:../packages/cache",
-        "@spresso-sdk/http_client_org": "file:../packages/http_client_org",
+        "@spresso-sdk/cache": "*",
+        "@spresso-sdk/http_client_org": "*",
         "tslib": "^2.3.1"
     },
     "devDependencies": {

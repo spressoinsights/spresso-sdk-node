@@ -16,7 +16,7 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/cache": "file:../packages/cache"
+        "@spresso-sdk/cache": "*"
     },
     "devDependencies": {
         "concurrently": "7.0.0",
