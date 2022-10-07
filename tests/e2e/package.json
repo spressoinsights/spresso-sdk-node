@@ -5,12 +5,12 @@
     "description": "End to End testing for Spresso-SDK.",
     "main": "index.js",
     "scripts": {
-        "install": "npm install --registry http://localhost:4873"
+        "installFromLocalRegistry": "npm install --no-package-lock --registry http://localhost:4873"
     },
     "devDependencies": {
         "typescript": "4.7.2"
     },
     "dependencies": {
-        "@spresso-sdk/price_optimization_0.0": "npm:@spresso-sdk/price_optimization@^0.0.0"
+        "@spresso-sdk/price_optimization_0.0": "npm:@spresso-sdk/price_optimization@^0.0.2"
     }
 }
