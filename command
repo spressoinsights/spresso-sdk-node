@@ -12,17 +12,24 @@ patch:
 	npm run patch
 localPublish: build createTestNPMUser
 	npm run localPublish
-StartMinikube:
+
+startMinikube:
 	minikube start --driver=virtualbox --memory 7000Mi --cpus 4 &&\
 	echo "Need to wait for service account to be created." &&\
 	sleep 5
-MinikubeDashboard:
+minikubeDashboard:
 	minikube dashboard
-StartServicesAll: StartMinikube StartServices
-
-StartServices:
-	make -f ./command -j 1 StartVerdaccioMinikube
-StartVerdaccioMinikube:
+startServicesLocal: StartMinikube
+	make -f ./command -j 1 startVerdaccioMinikubeLocal
+startVerdaccioMinikubeLocal:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
-	kubectl port-forward verdaccio 4873:4873 & 
+	kubectl port-forward verdaccio 4873:4873 
+
+
+startServicesCI:
+	make -f ./command -j 1 startVerdaccioMinikubeCI
+startVerdaccioMinikubeCI:
+	kubectl create -f ./minikube/verdaccio.yaml || true &&\
+	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
+	kubectl port-forward verdaccio 4873:4873 &
