@@ -16,6 +16,9 @@ jobs:
     - name: Deploy to minikube
       run:
         nix-shell --command "make -f ./command -j1 StartServices"
+    - name: Install
+      run:
+        nix-shell --command "make -f ./command -j1 install"
     - name: Local Publish
       run:
         nix-shell --command "make -f ./command -j1 localPublish"
