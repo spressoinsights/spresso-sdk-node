@@ -25,4 +25,4 @@ StartServices:
 StartVerdaccioMinikube:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
-	kubectl port-forward verdaccio 4873:4873
+	kubectl port-forward verdaccio 4873:4873 & 
