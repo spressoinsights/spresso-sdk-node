@@ -1,0 +1,27 @@
+This is a rough draft. 
+
+* Requirements 
+  We use npm version 8.15.0 (Minor version is important since it seems like some bugs have been fixed regarding workspaces).
+  You can install node v16.17.1 which should have that npm version packaged inside. 
+* How to build
+  "npm install" will get you all you need to get up and running
+  You can then run npm run build which will create the dist-* files.
+
+* How do I use this in another app
+** Get Proxy Running
+  You can utilize a npm proxy (verdaccio) to publish/install from. 
+  If you use minikube then you can run this command to get that pod create in your kubernetes cluster:
+  
+  kubectl create -f ./minikube/verdaccio.yaml || true &&\
+  kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
+  kubectl port-forward verdaccio 4873:4873
+
+  If you use docker-desktop then follow this https://verdaccio.org/docs/docker 
+  Note: you need to make sure its verdaccio/verdaccio:4 .
+
+** Deploy 
+   First you will need to run "npm run createTestNPMUser" to create a test user for the proxy server. 
+   You can then run "npm run localPublish" to publish to your local proxy. You can verify its contents by visiting localhost:4873
+** Use
+   You can install packages in another local repo by using something like "npm install @spresso-sdk/price_optimization --registry http://localhost:4873"
+  
