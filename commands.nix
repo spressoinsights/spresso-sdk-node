@@ -20,7 +20,7 @@ startMinikube:
 minikubeDashboard:
 	minikube dashboard
 startServicesLocal: StartMinikube
-	make -f ./command -j 1 startVerdaccioMinikubeLocal
+	make -f ./commands.nix -j 1 startVerdaccioMinikubeLocal
 startVerdaccioMinikubeLocal:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
@@ -28,7 +28,7 @@ startVerdaccioMinikubeLocal:
 
 
 startServicesCI:
-	make -f ./command -j 1 startVerdaccioMinikubeCI
+	make -f ./commands.nix -j 1 startVerdaccioMinikubeCI
 startVerdaccioMinikubeCI:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
