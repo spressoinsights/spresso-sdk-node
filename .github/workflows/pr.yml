@@ -22,4 +22,4 @@ jobs:
             - name: E2E Testing
               run: |
                   nix-shell --command "make -f ./commands.nix installForE2ETesting"
-                  nix-shell --command "make -f ./commands.nix e2eTesting
+                  nix-shell --command "make -f ./commands.nix e2eTesting"
