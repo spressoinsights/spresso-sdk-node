@@ -15,7 +15,8 @@ describe('Version 1.0', () => {
             // So here is why we might want another repo for e2e. We can have these as secrets in github actions as an alternative but it will be a pain to manage for local dev. Stil worth doing tho.
             const client = new PriceOptimimizationClient_1_0({
                 clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
-                clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
+                //clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
+                clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5',
             });
 
             await testFunctionalityVersion1(client);
