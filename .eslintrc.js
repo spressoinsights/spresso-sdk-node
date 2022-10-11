@@ -9,13 +9,14 @@ module.exports = {
     plugins: ['@typescript-eslint', 'functional', 'mocha', 'import', 'chai-friendly'],
     rules: {
         'functional/no-loop-statement': 'warn',
+        'functional/immutable-data': 'warn',
+        'functional/no-let': 'warn',
         'functional/prefer-readonly-type': 'off',
         'functional/no-method-signature': 'off',
         '@typescript-eslint/prefer-readonly': 'warn',
         '@typescript-eslint/class-literal-property-style': 'error',
         '@typescript-eslint/explicit-function-return-type': 'warn',
         '@typescript-eslint/consistent-type-assertions': 'error',
-        '@typescript-eslint/member-ordering': 'warn',
         '@typescript-eslint/method-signature-style': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-base-to-string': 'error',
@@ -37,18 +38,10 @@ module.exports = {
         '@typescript-eslint/require-array-sort-compare': 'error',
         '@typescript-eslint/strict-boolean-expressions': 'error',
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
-
-        '@typescript-eslint/no-magic-numbers': [
-            'error',
-            {
-                ignoreEnums: true,
-                ignoreReadonlyClassProperties: true,
-                ignoreTypeIndexes: true,
-            },
-        ],
         '@typescript-eslint/no-throw-literal': 'error',
         '@typescript-eslint/no-use-before-define': 'error',
         '@typescript-eslint/return-await': 'error',
+        '@typescript-eslint/member-ordering': ['warn', { "default": ["signature", "field", "constructor", "method"] }],
 
         '@typescript-eslint/naming-convention': [
             'error',
