@@ -1,4 +1,5 @@
 import { HttpClient, HttpResponseError } from '@spresso-sdk/http_client';
+import { IAuth } from './IAuth';
 import { Auth0Response } from './types/Auth0';
 
 type LocalAccessToken = {
@@ -6,7 +7,7 @@ type LocalAccessToken = {
     expiresIn: Date;
 };
 
-export class Authenticator {
+export class Authenticator implements IAuth {
     // can I have build flags for this?
     private readonly url = 'https://dev-369tg5rm.us.auth0.com/oauth/token';
 

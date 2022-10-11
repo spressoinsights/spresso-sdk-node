@@ -1,11 +1,11 @@
 import { HttpClient, HttpResponse } from '@spresso-sdk/http_client';
-import { Authenticator } from '@spresso-sdk/auth';
+import { IAuth } from '@spresso-sdk/auth';
 
 export class HttpClientOrg {
     private readonly client: HttpClient;
 
     // authenticator
-    constructor(private readonly authenticator: Authenticator) {
+    constructor(private readonly authenticator: IAuth) {
         this.client = new HttpClient();
     }
 

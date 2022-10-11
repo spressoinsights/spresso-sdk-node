@@ -1,4 +1,4 @@
-import { Authenticator } from '@spresso-sdk/auth';
+import { Authenticator, IAuth } from '@spresso-sdk/auth';
 import { HttpClientOrg } from '@spresso-sdk/http_client_org';
 import { GetPriceOptimizationInput, GetPriceOptimizationOutput } from './commands/GetPriceOptimization';
 
@@ -13,8 +13,9 @@ export class PriceOptimimizationClient {
     private readonly httpClient: HttpClientOrg;
 
     //constructor(options:{refreshToken: string, accessToken:string, blackListUserAgents: string[], cacheStrategy: ICacheStrategy}) {
-    constructor(options: { clientId: string; clientSecret: string }) {
-        this.httpClient = new HttpClientOrg(new Authenticator(options));
+    //constructor(options: { clientId: string; clientSecret: string }) {
+    constructor(options: { authenticator: IAuth }) {
+        this.httpClient = new HttpClientOrg(options.authenticator);
     }
 
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
