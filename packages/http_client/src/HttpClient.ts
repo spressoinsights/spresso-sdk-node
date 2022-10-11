@@ -1,5 +1,6 @@
 import { SuperAgent, SuperAgentRequest, Response as SuperAgentResponse } from 'superagent';
 import superagent from 'superagent';
+import { HttpResponse, Ok, AuthError, BadRequestError, UnknownError, TimeoutError } from './types';
 
 export type Response = SuperAgentResponse;
 
@@ -11,31 +12,56 @@ export class HttpClient {
         this.client = superagent.agent();
     }
 
-    public async get(url: string, headers: Record<string, string>): Promise<Response> {
-        return this.client.get(url).set(headers);
+    private mapResponse<T>(response: Response): HttpResponse<T> {
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+            // should parse this with a validator...
+            return { kind: 'ok', body: response.body as T };
+        } else if (response.statusCode >= 300 && response.statusCode < 400) {
+            return { kind: 'unknown' };
+        } else if (response.statusCode >= 400 && response.statusCode < 500) {
+            if (response.statusCode == 401 || response.statusCode == 403) {
+                return { kind: 'authError' };
+            } else {
+                return { kind: 'badRequest' };
+            }
+        } else {
+            return { kind: 'unknown' };
+        }
     }
 
-    public async post(url: string, headers: Record<string, string>, input: Record<string, unknown>): Promise<Response> {
-        return this.client.post(url).set(headers).send(input);
+    private mapError<T>(err: any): HttpResponse<T> {
+        if ('timeout' in err) {
+            return { kind: 'timeoutError' };
+        } else {
+            return { kind: 'unknown' };
+        }
     }
 
-    public async put(url: string, headers: Record<string, string>, input: Record<string, unknown>): Promise<Response> {
-        return this.client.put(url).send(headers).send(input);
+    // serialize error?
+    public async get<T>(url: string, headers: Record<string, string>): Promise<HttpResponse<T>> {
+        return this.client
+            .get(url)
+            .set(headers)
+            .ok(() => true)
+            .then(
+                (x) => this.mapResponse<T>(x),
+                (err) => this.mapError(err)
+            );
     }
 
-    public async patch(
+    public async post<T>(
         url: string,
         headers: Record<string, string>,
         input: Record<string, unknown>
-    ): Promise<Response> {
-        return this.client.patch(url).set(headers).send(input);
-    }
-
-    public async delete(
-        url: string,
-        headers: Record<string, string>,
-        input: Record<string, unknown>
-    ): Promise<Response> {
-        return this.client.delete(url).set(headers).send(input);
+    ): Promise<HttpResponse<T>> {
+        return this.client
+            .post(url)
+            .set(headers)
+            .send(input)
+            .ok(() => true)
+            .then(
+                (x) => this.mapResponse<T>(x),
+                (err) => this.mapError(err)
+            );
     }
 }

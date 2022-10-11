@@ -24,16 +24,25 @@ export class PriceOptimimizationClient {
         const finalUrl = `${url}?userId=${input.userId}&itemId=${input.itemId}`;
 
         // try get from cache here
-        const response = await this.httpClient.get(finalUrl);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const getPriceOptimizationOutputClient = response.body['data'] as GetPriceOptimizationOutputClient;
+        const getPriceOptimizationOutputClient = await this.httpClient.get<{ data: GetPriceOptimizationOutputClient }>(
+            finalUrl
+        );
 
-        return {
-            ...getPriceOptimizationOutputClient,
-            price: getPriceOptimizationOutputClient.price ?? input.fallBackPrice,
-        };
-
-        // add to cache here
+        switch (getPriceOptimizationOutputClient.kind) {
+            case 'ok':
+                return {
+                    ...getPriceOptimizationOutputClient.body.data,
+                    price: getPriceOptimizationOutputClient.body.data.price ?? input.fallBackPrice,
+                };
+            case 'authError':
+            case 'timeoutError':
+            case 'badRequest':
+            case 'unknown':
+                return {
+                    ...input,
+                    price: input.fallBackPrice,
+                };
+        }
     }
 }

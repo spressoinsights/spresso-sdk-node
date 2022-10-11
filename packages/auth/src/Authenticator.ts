@@ -1,4 +1,4 @@
-import { HttpClient } from '@spresso-sdk/http_client';
+import { HttpClient, HttpResponseError } from '@spresso-sdk/http_client';
 import { Auth0Response } from './types/Auth0';
 
 type LocalAccessToken = {
@@ -25,20 +25,28 @@ export class Authenticator {
         this.clientSecret = options.clientSecret;
     }
 
-    public async getAccessToken(): Promise<string> {
+    public async getAccessToken(): Promise<
+        { success: true; accessToken: string } | { success: false; error: HttpResponseError }
+    > {
         if (
             this.localAccessToken == undefined ||
             this.localAccessToken.expiresIn.getTime() - Date.now() <= this.credentialsExpireWindowMs
         ) {
-            await this.getAndSaveAccessTokenLocally();
+            // add retry here
+            const refreshTokenOrFailure = await this.getAndSaveAccessTokenLocally();
+            if (!refreshTokenOrFailure.success) {
+                return refreshTokenOrFailure;
+            }
         }
 
         const token = this.localAccessToken as LocalAccessToken;
 
-        return token.accessToken;
+        return { success: true, accessToken: token.accessToken };
     }
 
-    private async getAndSaveAccessTokenLocally(): Promise<void> {
+    private async getAndSaveAccessTokenLocally(): Promise<
+        { success: true } | { success: false; error: HttpResponseError }
+    > {
         const input = {
             client_id: this.clientId,
             client_secret: this.clientSecret,
@@ -46,16 +54,25 @@ export class Authenticator {
             grant_type: 'client_credentials',
         };
 
-        const response = (await this.httpClient.post(this.url, {}, input)).body as Auth0Response;
+        const response = await this.httpClient.post<Auth0Response>(this.url, {}, input);
 
-        const dateTimeNow = new Date();
-        const expiresIn = new Date(dateTimeNow.setSeconds(dateTimeNow.getSeconds() + response.expires_in));
+        switch (response.kind) {
+            case 'ok': {
+                const dateTimeNow = new Date();
+                const expiresIn = new Date(dateTimeNow.setSeconds(dateTimeNow.getSeconds() + response.body.expires_in));
 
-        // eslint-disable-next-line functional/immutable-data
-        this.localAccessToken = {
-            accessToken: this.ensureBearerPrepended(response.access_token),
-            expiresIn,
-        };
+                this.localAccessToken = {
+                    accessToken: this.ensureBearerPrepended(response.body.access_token),
+                    expiresIn,
+                };
+                return { success: true };
+            }
+            case 'badRequest':
+            case 'timeoutError':
+            case 'authError':
+            case 'unknown':
+                return { success: false, error: response };
+        }
     }
 
     private ensureBearerPrepended(token: string): string {
