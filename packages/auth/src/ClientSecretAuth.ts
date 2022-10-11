@@ -7,7 +7,7 @@ type LocalAccessToken = {
     expiresIn: Date;
 };
 
-export class Authenticator implements IAuth {
+export class ClientSecretAuth implements IAuth {
     // can I have build flags for this?
     private readonly url = 'https://dev-369tg5rm.us.auth0.com/oauth/token';
 

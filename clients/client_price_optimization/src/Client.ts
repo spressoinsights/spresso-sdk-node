@@ -1,4 +1,4 @@
-import { Authenticator, IAuth } from '@spresso-sdk/auth';
+import { IAuth } from '@spresso-sdk/auth';
 import { HttpClientOrg } from '@spresso-sdk/http_client_org';
 import { GetPriceOptimizationInput, GetPriceOptimizationOutput } from './commands/GetPriceOptimization';
 
