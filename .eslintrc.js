@@ -41,8 +41,11 @@ module.exports = {
         '@typescript-eslint/no-throw-literal': 'error',
         '@typescript-eslint/no-use-before-define': 'error',
         '@typescript-eslint/return-await': 'error',
-        '@typescript-eslint/member-ordering': ['warn', { "default": ["signature", "field", "constructor", "method"] }],
-
+        '@typescript-eslint/member-ordering': ['warn', { default: ['signature', 'field', 'constructor', 'method'] }],
+        '@typescript-eslint/no-unsafe-assignment': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'warn',
+        '@typescript-eslint/no-unsafe-return': 'warn',
+        '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/naming-convention': [
             'error',
             {

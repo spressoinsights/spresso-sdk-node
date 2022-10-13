@@ -1,5 +1,5 @@
 {
-    "name": "@spresso-sdk/price_optimization",
+    "name": "@spresso-sdk/cache_local_storage",
     "version": "1.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
@@ -9,17 +9,14 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./clients/client_price_optimization"
+        "lint": "cd ../../ && npx eslint ./packages/cache_local_storage"
     },
     "author": {
-        "name": "Spresso SDK for Node Team"
+        "name": "Spresso SDK for JavaScript Team"
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/cache": "^1.0.1",
-        "@spresso-sdk/cache_local_storage": "^1.0.1",
-        "@spresso-sdk/http_client_org": "^1.0.1",
-        "tslib": "^2.3.1"
+        "@spresso-sdk/cache": "^1.0.1"
     },
     "devDependencies": {
         "concurrently": "7.0.0"

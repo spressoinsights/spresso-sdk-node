@@ -3,9 +3,9 @@ import { ClientSecretAuth as ClientSecretAuth_1_0 } from '@spresso-sdk/auth_1.0'
 import { expect } from 'chai';
 
 async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0) {
-    const input = { userId: 'abc', itemId: 'SomeItemId', fallBackPrice: 3 };
+    const input = { userId: 'abc', itemId: 'SomeItemId', fallBackPrice: 3, userAgent: '' };
 
-    const res = await client.getPriceOptimization({ ...input, userAgent: '' });
+    const res = await client.getPriceOptimization(input);
     // just an example
     expect({ ...input, price: input.fallBackPrice }).to.include(res);
 }
@@ -19,6 +19,11 @@ describe('Version 1.0', () => {
                     clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
                     clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
                 }),
+                cacheStrategy: {
+                    get: async () => Promise.resolve(undefined),
+                    set: async () => Promise.resolve(),
+                    delete: async () => Promise.resolve(),
+                },
             });
 
             await testFunctionalityVersion1(client);
