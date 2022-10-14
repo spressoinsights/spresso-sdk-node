@@ -58,7 +58,7 @@ export class ClientSecretAuth implements IAuth {
         const response = await this.httpClient.post<Auth0Response>(this.url, {}, input);
 
         switch (response.kind) {
-            case 'ok': {
+            case 'Ok': {
                 const dateTimeNow = new Date();
                 const expiresIn = new Date(dateTimeNow.setSeconds(dateTimeNow.getSeconds() + response.body.expires_in));
 
@@ -68,10 +68,10 @@ export class ClientSecretAuth implements IAuth {
                 };
                 return { success: true };
             }
-            case 'badRequest':
-            case 'timeoutError':
-            case 'authError':
-            case 'unknown':
+            case 'BadRequest':
+            case 'TimeoutError':
+            case 'AuthError':
+            case 'Unknown':
                 return { success: false, error: response };
         }
     }

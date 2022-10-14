@@ -15,25 +15,25 @@ export class HttpClient {
     private mapResponse<T>(response: Response): HttpResponse<T> {
         if (response.statusCode >= 200 && response.statusCode < 300) {
             // should parse this with a validator...
-            return { kind: 'ok', body: response.body as T };
+            return { kind: 'Ok', body: response.body as T };
         } else if (response.statusCode >= 300 && response.statusCode < 400) {
-            return { kind: 'unknown' };
+            return { kind: 'Unknown' };
         } else if (response.statusCode >= 400 && response.statusCode < 500) {
             if (response.statusCode == 401 || response.statusCode == 403) {
-                return { kind: 'authError' };
+                return { kind: 'AuthError' };
             } else {
-                return { kind: 'badRequest' };
+                return { kind: 'BadRequest' };
             }
         } else {
-            return { kind: 'unknown' };
+            return { kind: 'Unknown' };
         }
     }
 
     private mapError<T>(err: any): HttpResponse<T> {
         if ('timeout' in err) {
-            return { kind: 'timeoutError' };
+            return { kind: 'TimeoutError' };
         } else {
-            return { kind: 'unknown' };
+            return { kind: 'Unknown' };
         }
     }
 

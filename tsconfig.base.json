@@ -19,7 +19,7 @@
         "plugins": [],
         "experimentalDecorators": true,
         "lib": ["es2015", "dom"],
-        "target": "es5",
+        "target": "es2019",
         "downlevelIteration": true,
         "noErrorTruncation": true,
         "esModuleInterop": true,

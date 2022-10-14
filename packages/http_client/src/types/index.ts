@@ -1,24 +1,24 @@
 export type HttpResponse<T> = Ok<T> | HttpResponseError;
 
 export type Ok<T> = {
-    kind: 'ok';
+    kind: 'Ok';
     body: T;
 };
 
 export type HttpResponseError = AuthError | BadRequestError | UnknownError | TimeoutError;
 
 export type AuthError = {
-    kind: 'authError';
+    kind: 'AuthError';
 };
 
 export type BadRequestError = {
-    kind: 'badRequest';
+    kind: 'BadRequest';
 };
 
 export type UnknownError = {
-    kind: 'unknown';
+    kind: 'Unknown';
 };
 
 export type TimeoutError = {
-    kind: 'timeoutError';
+    kind: 'TimeoutError';
 };

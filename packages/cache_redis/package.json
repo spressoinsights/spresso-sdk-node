@@ -1,5 +1,5 @@
 {
-    "name": "@spresso-sdk/http_client",
+    "name": "@spresso-sdk/cache_redis",
     "version": "1.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
@@ -9,16 +9,17 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./packages/http_client"
+        "lint": "cd ../../ && npx eslint ./packages/cache_redis"
     },
     "author": {
         "name": "Spresso SDK for JavaScript Team"
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@types/superagent": "4.1.15",
-        "cockatiel": "3.0.0",
-        "superagent": "8.0.1"
+        "@spresso-sdk/cache": "^1.0.1",
+        "@types/lodash": "4.14.186",
+        "lodash": "4.17.21",
+        "redis": "4.3.1"
     },
     "devDependencies": {
         "concurrently": "7.0.0"

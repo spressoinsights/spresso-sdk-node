@@ -10,3 +10,14 @@ export type GetPriceOptimizationOutput = {
     itemId: string;
     price: number;
 };
+
+export type GetPriceOptimizationsInput = {
+    pricingRequests: {
+        userId: string;
+        itemId: string;
+        fallBackPrice: number;
+    }[];
+    userAgent: string;
+};
+
+export type GetPriceOptimizationsOutput = GetPriceOptimizationOutput[];
