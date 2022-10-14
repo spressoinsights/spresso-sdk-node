@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@spresso-sdk/price_optimization_1.0": "npm:@spresso-sdk/price_optimization@^1.0.0",
+        "@spresso-sdk/cache_in_memory_1.0": "npm:@spresso-sdk/cache_in_memory@^1.0.0",
         "@spresso-sdk/auth_1.0": "npm:@spresso-sdk/auth@^1.0.0"
     }
 }

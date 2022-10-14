@@ -1,5 +1,6 @@
 import { PriceOptimimizationClient as PriceOptimimizationClient_1_0 } from '@spresso-sdk/price_optimization_1.0';
 import { ClientSecretAuth as ClientSecretAuth_1_0 } from '@spresso-sdk/auth_1.0';
+import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
 import { expect } from 'chai';
 
 async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0) {
@@ -19,6 +20,7 @@ describe('Version 1.0', () => {
                     clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
                     clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
                 }),
+                cachingStrategy: new InMemory(),
             });
 
             await testFunctionalityVersion1(client);
