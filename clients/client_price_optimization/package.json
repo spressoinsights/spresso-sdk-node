@@ -18,6 +18,7 @@
     "dependencies": {
         "@spresso-sdk/cache": "^1.0.1",
         "@spresso-sdk/http_client_org": "^1.0.1",
+        "@spresso-sdk/cache_in_memory": "^1.0.1",
         "tslib": "^2.3.1"
     },
     "devDependencies": {

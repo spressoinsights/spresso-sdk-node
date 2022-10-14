@@ -7,10 +7,12 @@ import {
     GetPriceOptimizationsInput,
     GetPriceOptimizationsOutput,
 } from './commands/GetPriceOptimization';
+import { InMemory } from '@spresso-sdk/cache_in_memory';
 
 type GetPriceOptimizationOutputClient = Omit<GetPriceOptimizationOutput, 'price'> & { price: number | null };
 type GetPriceOptimizationsOutputClient = GetPriceOptimizationOutputClient[];
 type PriceOptimizationKey = { userId: string; itemId: string };
+type PriceOptimizationFeatureConfig = { ttlMs: number; userAgentBlackList: string[] };
 
 export class PriceOptimimizationClient {
     private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
@@ -19,12 +21,15 @@ export class PriceOptimimizationClient {
     private readonly cache: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
     private readonly ttlMs = 3600000;
 
+    private readonly configCache: InMemory<{ config: 'config' }, PriceOptimizationFeatureConfig>;
+
     constructor(options: {
         authenticator: IAuth;
         cachingStrategy: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
     }) {
         this.httpClient = new HttpClientOrg(options.authenticator);
         this.cache = options.cachingStrategy;
+        this.configCache = new InMemory();
     }
 
     private getKeyObj(apiResponse: GetPriceOptimizationOutput): {
@@ -40,7 +45,36 @@ export class PriceOptimimizationClient {
         };
     }
 
+    // rough draft here
+    private async getFeatureConfig(): Promise<PriceOptimizationFeatureConfig> {
+        // add ttl to feature of 15 min to ttl config...
+        const configTtlMs = 900000;
+        const config = await this.configCache.get({ key: { config: 'config' }, now: new Date(), ttlMs: configTtlMs });
+
+        switch (config.kind) {
+            case 'Ok':
+                switch (config.ok.kind) {
+                    case 'CacheHit':
+                        return config.ok.value;
+                    case 'CacheMiss': {
+                        // this can fail so we need some defaults in the sdk itself
+                        const apiResponse = await Promise.resolve({ ttlMs: 100, userAgentBlackList: [] });
+
+                        await this.configCache.set({
+                            entry: { key: { config: 'config' }, value: apiResponse },
+                            now: new Date(),
+                            ttlMs: configTtlMs,
+                        });
+
+                        return apiResponse;
+                    }
+                }
+        }
+    }
+
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
+        const config = await this.getFeatureConfig();
+
         // user agent check here -> return default price
 
         // try get from cache here
@@ -85,6 +119,8 @@ export class PriceOptimimizationClient {
     }
 
     private async getPriceOptimizationFromApi(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
+        const config = await this.getFeatureConfig();
+
         // todo build/find query string utils with proper escaping and stuff
         const url = `${this.baseUrl}/priceOptimizations`;
         const finalUrl = `${url}?userId=${input.userId}&itemId=${input.itemId}`;
