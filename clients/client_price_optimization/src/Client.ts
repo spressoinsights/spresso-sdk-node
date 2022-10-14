@@ -19,7 +19,6 @@ export class PriceOptimimizationClient {
     private readonly cache: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
     private readonly ttlMs = 3600000;
 
-    // satodo need to make initialization easy for user. Add specific cache type for Price OPs. Also force keys to be valid there as well.
     constructor(options: {
         authenticator: IAuth;
         cachingStrategy: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
