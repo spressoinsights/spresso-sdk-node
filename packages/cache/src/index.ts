@@ -11,8 +11,7 @@ export function mapGet<Key extends Record<string, string>, Output>(
         return { kind: 'CacheMiss', input: input.key };
     }
 
-    // if we cant parse then its NotFound...
-    //const parsedItem = item as CacheEntry<T>;
+    // if we cant parse then its a cache miss... This will only be applicable if we change the schema and dont force refresh redis.
     const parsedItem = item;
 
     if (

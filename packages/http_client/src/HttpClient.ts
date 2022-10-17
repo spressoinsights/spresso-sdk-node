@@ -37,7 +37,6 @@ export class HttpClient {
         }
     }
 
-    // serialize error?
     public async get<T>(url: string, headers: Record<string, string>): Promise<HttpResponse<T>> {
         return this.client
             .get(url)

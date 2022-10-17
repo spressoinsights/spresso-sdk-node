@@ -15,11 +15,8 @@ import { CacheHit, Ok } from '@spresso-sdk/cache/dist-types/types/CacheOutput';
 import lodash from 'lodash';
 import { RedisClientType } from 'redis';
 
-// Just an example
-// Should probably be a lru with some ttl checks. Dont see the memory footprint being anything we really need to worry about tho for the short term.
-
 export class RedisCache<Key extends Record<string, string>, Output> implements ICacheStrategy<Key, Output> {
-    // satodo make this an interface so we can ducktype...
+    // satodo make this an interface so we can ducktype... we dont need to have a handle on an actual redis instance
     constructor(private readonly redisClient: RedisClientType<any, any>) {}
 
     private keyToString<Key>(key: Key): string {
@@ -58,8 +55,6 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
                 items,
                 input.keys.map((key) => ({ ...input, key }))
             );
-
-            const m = zippedList.map((x) => this.mapGetRedis(x[1] as CacheInputGet<Key>, x[0]));
 
             return { kind: 'Ok', ok: zippedList.map((x) => this.mapGetRedis(x[1] as CacheInputGet<Key>, x[0])) };
         } catch (error) {

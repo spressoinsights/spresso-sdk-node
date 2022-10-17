@@ -12,15 +12,17 @@ import { InMemory } from '@spresso-sdk/cache_in_memory';
 type GetPriceOptimizationOutputClient = Omit<GetPriceOptimizationOutput, 'price'> & { price: number | null };
 type GetPriceOptimizationsOutputClient = GetPriceOptimizationOutputClient[];
 type PriceOptimizationKey = { userId: string; itemId: string };
-type PriceOptimizationFeatureConfig = { ttlMs: number; userAgentBlackList: string[] };
+type PriceOptimizationFeatureConfig = {
+    ttlMs: number;
+    userAgentBlacklist: string[];
+    userAgentBlacklistRegExp: RegExp[];
+};
 
 export class PriceOptimimizationClient {
     private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
 
     private readonly httpClient: HttpClientOrg;
     private readonly cache: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
-    private readonly ttlMs = 3600000;
-
     private readonly configCache: InMemory<{ config: 'config' }, PriceOptimizationFeatureConfig>;
 
     constructor(options: {
@@ -58,7 +60,11 @@ export class PriceOptimimizationClient {
                         return config.ok.value;
                     case 'CacheMiss': {
                         // this can fail so we need some defaults in the sdk itself
-                        const apiResponse = await Promise.resolve({ ttlMs: 100, userAgentBlackList: [] });
+                        const apiResponse = await Promise.resolve({
+                            ttlMs: 3600000,
+                            userAgentBlacklist: [],
+                            userAgentBlacklistRegExp: [],
+                        });
 
                         await this.configCache.set({
                             entry: { key: { config: 'config' }, value: apiResponse },
@@ -72,16 +78,25 @@ export class PriceOptimimizationClient {
         }
     }
 
+    private allowUserAgent(userAgent: string, userAgentBlacklistRegExp: RegExp[]): boolean {
+        return userAgentBlacklistRegExp.some((regex) => regex.test(userAgent));
+    }
+
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
         const config = await this.getFeatureConfig();
 
-        // user agent check here -> return default price
+        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            return {
+                userId: input.userId,
+                itemId: input.itemId,
+                price: input.fallBackPrice,
+            };
+        }
 
-        // try get from cache here
         const cachedItem = await this.cache.get({
             key: { userId: input.userId, itemId: input.itemId },
             now: new Date(),
-            ttlMs: this.ttlMs, // comes from api config... defaulting for now to one hour
+            ttlMs: config.ttlMs,
         });
 
         switch (cachedItem.kind) {
@@ -90,10 +105,9 @@ export class PriceOptimimizationClient {
                 const result = await this.getPriceOptimizationFromApi(input);
                 await this.cache
                     .set({
-                        //entry: { key: { userId: result.userId, itemId: result.itemId }, value: result },
                         entry: this.getKeyObj(result),
                         now: new Date(),
-                        ttlMs: this.ttlMs,
+                        ttlMs: config.ttlMs,
                     })
                     .catch(); // dont error on not being able to cache ... need to add logging func as an input
                 return result;
@@ -108,7 +122,7 @@ export class PriceOptimimizationClient {
                             .set({
                                 entry: this.getKeyObj(result),
                                 now: new Date(),
-                                ttlMs: this.ttlMs,
+                                ttlMs: config.ttlMs,
                             })
                             .catch(); // dont error on not being able to cache ... need to add logging func as an input
                         return result;
@@ -119,8 +133,6 @@ export class PriceOptimimizationClient {
     }
 
     private async getPriceOptimizationFromApi(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
-        const config = await this.getFeatureConfig();
-
         // todo build/find query string utils with proper escaping and stuff
         const url = `${this.baseUrl}/priceOptimizations`;
         const finalUrl = `${url}?userId=${input.userId}&itemId=${input.itemId}`;
@@ -148,12 +160,20 @@ export class PriceOptimimizationClient {
     }
 
     public async getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<GetPriceOptimizationsOutput> {
-        // user agent check here -> return default price
+        const config = await this.getFeatureConfig();
+
+        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            return input.pricingRequests.map((x) => ({
+                userId: x.userId,
+                itemId: x.itemId,
+                price: x.fallBackPrice,
+            }));
+        }
 
         const cachedItems = await this.cache.getMany({
             keys: input.pricingRequests.map((x) => ({ userId: x.userId, itemId: x.itemId })),
             now: new Date(),
-            ttlMs: 3600000,
+            ttlMs: config.ttlMs,
         });
 
         switch (cachedItems.kind) {
@@ -195,7 +215,7 @@ export class PriceOptimimizationClient {
                     pricingRequests: cacheMissesRequests,
                     userAgent: input.userAgent,
                 });
-                // need to make this a map
+
                 const apiResponseMapEntries = apiResponses.map((x) => {
                     const obj = {
                         itemId: x.itemId,
@@ -215,12 +235,11 @@ export class PriceOptimimizationClient {
                     .setMany({
                         entries: apiResponses.map((x) => this.getKeyObj(x)),
                         now: new Date(),
-                        ttlMs: this.ttlMs,
+                        ttlMs: config.ttlMs,
                     })
                     .catch();
 
-                // Todo use getMany... time complexity is the same tho
-                // we do this to preserver order
+                // Note: We do this to preserver order
                 return cachedItems.ok.map((cacheOutput) => {
                     switch (cacheOutput.kind) {
                         case 'CacheHit':
