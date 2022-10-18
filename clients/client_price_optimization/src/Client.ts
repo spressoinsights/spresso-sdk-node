@@ -1,42 +1,100 @@
-import { IAuth } from '@spresso-sdk/auth';
 import { CacheMiss, ICacheStrategy } from '@spresso-sdk/cache';
 import { HttpClientOrg } from '@spresso-sdk/http_client_org';
 import {
     GetPriceOptimizationInput,
     GetPriceOptimizationOutput,
+    GetPriceOptimizationOutputClient,
     GetPriceOptimizationsInput,
     GetPriceOptimizationsOutput,
-} from './commands/GetPriceOptimization';
+    GetPriceOptimizationsOutputClient,
+} from './types/commands/GetPriceOptimization';
 import { InMemory } from '@spresso-sdk/cache_in_memory';
 
-type GetPriceOptimizationOutputClient = Omit<GetPriceOptimizationOutput, 'price'> & { price: number | null };
-type GetPriceOptimizationsOutputClient = GetPriceOptimizationOutputClient[];
-type PriceOptimizationKey = { userId: string; itemId: string };
-type PriceOptimizationFeatureConfig = {
-    ttlMs: number;
-    userAgentBlacklist: string[];
-    userAgentBlacklistRegExp: RegExp[];
-};
+import {
+    ConsecutiveBreaker,
+    ExponentialBackoff,
+    retry,
+    circuitBreaker,
+    wrap,
+    handleWhenResult,
+    IMergedPolicy,
+    IRetryContext,
+    IDefaultPolicyContext,
+    RetryPolicy,
+    CircuitBreakerPolicy,
+    timeout,
+    TimeoutStrategy,
+    TimeoutPolicy,
+    ICancellationContext,
+} from 'cockatiel';
+import { PriceOptimizationFeatureConfig } from './types/models/PriceOptimizationFeatureConfig';
+import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
+
+type ResiliencyPolicy = IMergedPolicy<
+    ICancellationContext & IRetryContext & IDefaultPolicyContext,
+    never,
+    [TimeoutPolicy, RetryPolicy, CircuitBreakerPolicy]
+>;
 
 export class PriceOptimimizationClient {
     private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
 
+    private readonly options: PriceOptimizationClientOptions;
     private readonly httpClient: HttpClientOrg;
-    private readonly cache: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
+    private readonly cache: ICacheStrategy<PriceOptimizationCacheKey, PriceOptimization>;
     private readonly configCache: InMemory<{ config: 'config' }, PriceOptimizationFeatureConfig>;
+    private readonly getPriceOptimizationResiliencyPolicy: ResiliencyPolicy;
+    private readonly getPriceOptimizationsResiliencyPolicy: ResiliencyPolicy;
 
-    constructor(options: {
-        authenticator: IAuth;
-        cachingStrategy: ICacheStrategy<PriceOptimizationKey, GetPriceOptimizationOutput>;
-    }) {
+    constructor(options: PriceOptimizationClientOptions) {
+        this.options = options;
         this.httpClient = new HttpClientOrg(options.authenticator);
         this.cache = options.cachingStrategy;
         this.configCache = new InMemory();
+
+        this.getPriceOptimizationResiliencyPolicy = this.resiliencyPolicy();
+        this.getPriceOptimizationsResiliencyPolicy = this.resiliencyPolicy();
     }
 
-    private getKeyObj(apiResponse: GetPriceOptimizationOutput): {
-        key: PriceOptimizationKey;
-        value: GetPriceOptimizationOutput;
+    private resiliencyPolicy(): ResiliencyPolicy {
+        const handler = handleWhenResult((res) => {
+            const typedRes = res as GetPriceOptimizationOutput;
+            switch (typedRes.kind) {
+                case 'Ok':
+                    return false;
+                case 'TimeoutError':
+                case 'Unknown':
+                    return true;
+            }
+        });
+
+        // Create a retry policy that'll try whatever function we execute 3
+        // times with a randomized exponential backoff.
+        const retryFunc = retry(handler, {
+            maxAttempts: this.options.resiliencyPolicy.numberOfRetries,
+            backoff: new ExponentialBackoff(),
+        });
+
+        // Create a circuit breaker that'll stop calling the executed function for {circuitBreakerBreakDurationMs}
+        // seconds if it fails {numberOfFailuresBeforeTrippingCircuitBreaker} times in a row.
+        // This can give time for e.g. a database to recover without getting tons of traffic.
+        const circuitBreakerFunc = circuitBreaker(handler, {
+            halfOpenAfter: this.options.resiliencyPolicy.circuitBreakerBreakDurationMs,
+            breaker: new ConsecutiveBreaker(this.options.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker),
+        });
+
+        // timeout the whole request
+        //const timeoutPolicy = timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Cooperative);
+        const timeoutPolicy = timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Aggressive);
+
+        const resiliency = wrap(retryFunc, circuitBreakerFunc, timeoutPolicy);
+
+        return resiliency;
+    }
+
+    private getKeyObj(apiResponse: PriceOptimization): {
+        key: PriceOptimizationCacheKey;
+        value: PriceOptimization;
     } {
         return {
             key: {
@@ -82,14 +140,41 @@ export class PriceOptimimizationClient {
         return userAgentBlacklistRegExp.some((regex) => regex.test(userAgent));
     }
 
-    public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
-        const config = await this.getFeatureConfig();
+    public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<PriceOptimization> {
+        try {
+            const res = await this.getPriceOptimizationResiliencyPolicy.execute(async () =>
+                this._getPriceOptimization(input)
+            );
 
-        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            if (res.kind == 'TimeoutError' || res.kind == 'Unknown') {
+                return {
+                    userId: input.userId,
+                    itemId: input.itemId,
+                    price: input.fallBackPrice,
+                };
+            }
+
+            return res.ok;
+        } catch (err) {
             return {
                 userId: input.userId,
                 itemId: input.itemId,
                 price: input.fallBackPrice,
+            };
+        }
+    }
+
+    private async _getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
+        const config = await this.getFeatureConfig();
+
+        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            return {
+                kind: 'Ok',
+                ok: {
+                    userId: input.userId,
+                    itemId: input.itemId,
+                    price: input.fallBackPrice,
+                },
             };
         }
 
@@ -103,9 +188,13 @@ export class PriceOptimimizationClient {
             // FatalCacheError?
             case 'FatalError': {
                 const result = await this.getPriceOptimizationFromApi(input);
+                if (result.kind == 'TimeoutError' || result.kind == 'Unknown') {
+                    return result;
+                }
+
                 await this.cache
                     .set({
-                        entry: this.getKeyObj(result),
+                        entry: this.getKeyObj(result.ok),
                         now: new Date(),
                         ttlMs: config.ttlMs,
                     })
@@ -115,12 +204,16 @@ export class PriceOptimimizationClient {
             case 'Ok': {
                 switch (cachedItem.ok.kind) {
                     case 'CacheHit':
-                        return cachedItem.ok.value;
+                        return { kind: 'Ok', ok: cachedItem.ok.value };
                     case 'CacheMiss': {
                         const result = await this.getPriceOptimizationFromApi(input);
+                        if (result.kind == 'TimeoutError' || result.kind == 'Unknown') {
+                            return result;
+                        }
+
                         await this.cache
                             .set({
-                                entry: this.getKeyObj(result),
+                                entry: this.getKeyObj(result.ok),
                                 now: new Date(),
                                 ttlMs: config.ttlMs,
                             })
@@ -145,29 +238,63 @@ export class PriceOptimimizationClient {
             case 'Ok':
                 // Note: We will be forcing all http calls to have fallbackprice in its payload ... this code will most likley become redundant
                 return {
-                    ...getPriceOptimizationOutputClient.body.data,
-                    price: getPriceOptimizationOutputClient.body.data.price ?? input.fallBackPrice,
+                    kind: 'Ok',
+                    ok: {
+                        ...getPriceOptimizationOutputClient.body.data,
+                        price: getPriceOptimizationOutputClient.body.data.price ?? input.fallBackPrice,
+                    },
                 };
             case 'AuthError':
-            case 'TimeoutError':
             case 'BadRequest':
-            case 'Unknown':
                 return {
-                    ...input,
-                    price: input.fallBackPrice,
+                    kind: 'Ok',
+                    ok: {
+                        ...input,
+                        price: input.fallBackPrice,
+                    },
                 };
+            case 'TimeoutError':
+            case 'Unknown':
+                return getPriceOptimizationOutputClient;
         }
     }
 
-    public async getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<GetPriceOptimizationsOutput> {
-        const config = await this.getFeatureConfig();
+    public async getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<PriceOptimization[]> {
+        try {
+            const res = await this.getPriceOptimizationsResiliencyPolicy.execute(async () =>
+                this._getPriceOptimizations(input)
+            );
 
-        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            if (res.kind == 'TimeoutError' || res.kind == 'Unknown') {
+                return input.pricingRequests.map((x) => ({
+                    userId: x.userId,
+                    itemId: x.itemId,
+                    price: x.fallBackPrice,
+                }));
+            }
+
+            return res.ok;
+        } catch (err) {
             return input.pricingRequests.map((x) => ({
                 userId: x.userId,
                 itemId: x.itemId,
                 price: x.fallBackPrice,
             }));
+        }
+    }
+
+    private async _getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<GetPriceOptimizationsOutput> {
+        const config = await this.getFeatureConfig();
+
+        if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklistRegExp)) {
+            return {
+                kind: 'Ok',
+                ok: input.pricingRequests.map((x) => ({
+                    userId: x.userId,
+                    itemId: x.itemId,
+                    price: x.fallBackPrice,
+                })),
+            };
         }
 
         const cachedItems = await this.cache.getMany({
@@ -198,7 +325,7 @@ export class PriceOptimimizationClient {
                 const clientInputMap = new Map(hashedInputs);
 
                 const cacheMissesRequests = (
-                    cachedItems.ok.filter((x) => x.kind === 'CacheMiss') as CacheMiss<PriceOptimizationKey>[]
+                    cachedItems.ok.filter((x) => x.kind === 'CacheMiss') as CacheMiss<PriceOptimizationCacheKey>[]
                 ).map((x) => {
                     const obj = {
                         itemId: x.input.itemId,
@@ -216,7 +343,11 @@ export class PriceOptimimizationClient {
                     userAgent: input.userAgent,
                 });
 
-                const apiResponseMapEntries = apiResponses.map((x) => {
+                if (apiResponses.kind == 'TimeoutError' || apiResponses.kind == 'Unknown') {
+                    return apiResponses;
+                }
+
+                const apiResponseMapEntries = apiResponses.ok.map((x) => {
                     const obj = {
                         itemId: x.itemId,
                         userId: x.userId,
@@ -226,37 +357,40 @@ export class PriceOptimimizationClient {
                         obj,
                         Object.keys(obj).sort((a, b) => a.localeCompare(b))
                     );
-                    return [key, x] as [string, GetPriceOptimizationOutput];
+                    return [key, x] as [string, PriceOptimization];
                 });
 
                 const apiResponseMap = new Map(apiResponseMapEntries);
 
                 await this.cache
                     .setMany({
-                        entries: apiResponses.map((x) => this.getKeyObj(x)),
+                        entries: apiResponses.ok.map((x) => this.getKeyObj(x)),
                         now: new Date(),
                         ttlMs: config.ttlMs,
                     })
                     .catch();
 
                 // Note: We do this to preserver order
-                return cachedItems.ok.map((cacheOutput) => {
-                    switch (cacheOutput.kind) {
-                        case 'CacheHit':
-                            return cacheOutput.value;
-                        case 'CacheMiss': {
-                            const obj = {
-                                itemId: cacheOutput.input.itemId,
-                                userId: cacheOutput.input.userId,
-                            };
-                            const key = JSON.stringify(
-                                obj,
-                                Object.keys(obj).sort((a, b) => a.localeCompare(b))
-                            );
-                            return apiResponseMap.get(key) as GetPriceOptimizationOutput;
+                return {
+                    kind: 'Ok',
+                    ok: cachedItems.ok.map((cacheOutput) => {
+                        switch (cacheOutput.kind) {
+                            case 'CacheHit':
+                                return cacheOutput.value;
+                            case 'CacheMiss': {
+                                const obj = {
+                                    itemId: cacheOutput.input.itemId,
+                                    userId: cacheOutput.input.userId,
+                                };
+                                const key = JSON.stringify(
+                                    obj,
+                                    Object.keys(obj).sort((a, b) => a.localeCompare(b))
+                                );
+                                return apiResponseMap.get(key) as PriceOptimization;
+                            }
                         }
-                    }
-                });
+                    }),
+                };
             }
         }
     }
@@ -287,7 +421,7 @@ export class PriceOptimimizationClient {
                         obj,
                         Object.keys(obj).sort((a, b) => a.localeCompare(b))
                     );
-                    return [key, x] as [string, GetPriceOptimizationOutput];
+                    return [key, x] as [string, PriceOptimization];
                 });
 
                 const clientOutputMap = new Map(hashedInputs);
@@ -304,16 +438,20 @@ export class PriceOptimimizationClient {
                         )?.price ?? input.fallBackPrice,
                 }));
 
-                return op;
+                return { kind: 'Ok', ok: op };
             }
             case 'AuthError':
-            case 'TimeoutError':
             case 'BadRequest':
+                return {
+                    kind: 'Ok',
+                    ok: input.pricingRequests.map((x) => ({
+                        ...x,
+                        price: x.fallBackPrice,
+                    })),
+                };
+            case 'TimeoutError':
             case 'Unknown':
-                return input.pricingRequests.map((x) => ({
-                    ...x,
-                    price: x.fallBackPrice,
-                }));
+                return getPriceOptimizationsOutputClient;
         }
     }
 }
