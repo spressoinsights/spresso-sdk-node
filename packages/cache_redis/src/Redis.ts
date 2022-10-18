@@ -1,5 +1,6 @@
 import {
     CacheEntry,
+    CacheHit,
     CacheInputDelete,
     CacheInputDeleteMany,
     CacheInputGet,
@@ -10,8 +11,8 @@ import {
     FatalError,
     ICacheStrategy,
     mapGet,
+    Ok,
 } from '@spresso-sdk/cache';
-import { CacheHit, Ok } from '@spresso-sdk/cache/dist-types/types/CacheOutput';
 import lodash from 'lodash';
 import { RedisClientType } from 'redis';
 

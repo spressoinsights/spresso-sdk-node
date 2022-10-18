@@ -1,6 +1,6 @@
 import { HttpClient, HttpResponseError } from '@spresso-sdk/http_client';
 import { IAuth } from './IAuth';
-import { Auth0Response } from './types/Auth0';
+import { Auth0Response } from './types/models/Auth0';
 
 type LocalAccessToken = {
     accessToken: string;

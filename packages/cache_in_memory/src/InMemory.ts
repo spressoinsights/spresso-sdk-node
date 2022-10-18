@@ -1,5 +1,6 @@
 import {
     CacheEntry,
+    CacheHit,
     CacheInputDelete,
     CacheInputDeleteMany,
     CacheInputGet,
@@ -9,8 +10,8 @@ import {
     CacheMiss,
     ICacheStrategy,
     mapGet,
+    Ok,
 } from '@spresso-sdk/cache';
-import { CacheHit, Ok } from '@spresso-sdk/cache/dist-types/types/CacheOutput';
 
 // Should probably be a lru with some ttl checks. Dont see the memory footprint being anything we really need to worry about tho for the short term.
 

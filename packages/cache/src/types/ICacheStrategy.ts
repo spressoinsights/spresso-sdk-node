@@ -1,4 +1,4 @@
-import { CacheHit, CacheMiss, FatalError, Ok } from './CacheOutput';
+import { CacheHit, CacheMiss, FatalError, Ok } from './commands/CacheOutput';
 import {
     CacheInputDelete,
     CacheInputDeleteMany,
@@ -6,7 +6,7 @@ import {
     CacheInputGetMany,
     CacheInputSet,
     CacheInputSetMany,
-} from './CacheInput';
+} from './commands/CacheInput';
 
 export interface ICacheStrategy<Key extends Record<string, string>, Output> {
     get(input: CacheInputGet<Key>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError>;
