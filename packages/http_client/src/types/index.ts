@@ -1,3 +1,5 @@
+export * from './models';
+
 export type HttpResponse<T> = Ok<T> | HttpResponseError;
 
 export type Ok<T> = {

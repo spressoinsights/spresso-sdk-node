@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponseError } from '@spresso-sdk/http_client';
+import { HttpClient, HttpClientOptions, HttpResponseError } from '@spresso-sdk/http_client';
 import { IAuth } from './IAuth';
 import { Auth0Response } from './types/models/Auth0';
 
@@ -21,7 +21,7 @@ export class ClientSecretAuth implements IAuth {
     private readonly credentialsExpireWindowMs = 300000;
 
     constructor(options: { clientId: string; clientSecret: string }) {
-        this.httpClient = new HttpClient();
+        this.httpClient = new HttpClient(new HttpClientOptions());
         this.clientId = options.clientId;
         this.clientSecret = options.clientSecret;
     }

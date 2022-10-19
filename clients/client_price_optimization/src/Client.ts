@@ -29,6 +29,7 @@ import {
 } from 'cockatiel';
 import { PriceOptimizationFeatureConfig } from './types/models/PriceOptimizationFeatureConfig';
 import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
+import { HttpClientOptions } from '@spresso-sdk/http_client';
 
 type ResiliencyPolicy = IMergedPolicy<
     ICancellationContext & IRetryContext & IDefaultPolicyContext,
@@ -48,7 +49,7 @@ export class PriceOptimimizationClient {
 
     constructor(options: PriceOptimizationClientOptions) {
         this.options = options;
-        this.httpClient = new HttpClientOrg(options.authenticator);
+        this.httpClient = new HttpClientOrg(options.authenticator, new HttpClientOptions());
         this.cache = options.cachingStrategy;
         this.configCache = new InMemory();
 
