@@ -17,10 +17,10 @@ export type BadRequestError = {
     kind: 'BadRequest';
 };
 
-export type UnknownError = {
-    kind: 'Unknown';
-};
-
 export type TimeoutError = {
     kind: 'TimeoutError';
+};
+
+export type UnknownError = {
+    kind: 'Unknown';
 };

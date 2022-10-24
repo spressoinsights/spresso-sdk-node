@@ -55,7 +55,7 @@ export class ClientSecretAuth implements IAuth {
             grant_type: 'client_credentials',
         };
 
-        const response = await this.httpClient.post<Auth0Response>(this.url, {}, input);
+        const response = await this.httpClient.post<Auth0Response>({ url: this.url, body: input });
 
         switch (response.kind) {
             case 'Ok': {

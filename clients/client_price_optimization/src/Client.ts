@@ -231,9 +231,9 @@ export class PriceOptimimizationClient {
         const url = `${this.baseUrl}/priceOptimizations`;
         const finalUrl = `${url}?userId=${input.userId}&itemId=${input.itemId}`;
 
-        const getPriceOptimizationOutputClient = await this.httpClient.get<{ data: GetPriceOptimizationOutputClient }>(
-            finalUrl
-        );
+        const getPriceOptimizationOutputClient = await this.httpClient.get<{ data: GetPriceOptimizationOutputClient }>({
+            url: finalUrl,
+        });
 
         switch (getPriceOptimizationOutputClient.kind) {
             case 'Ok':
@@ -403,8 +403,11 @@ export class PriceOptimimizationClient {
 
         const getPriceOptimizationsOutputClient = await this.httpClient.post<{
             data: GetPriceOptimizationsOutputClient;
-        }>(url, {
-            pricingRefs: input.pricingRequests,
+        }>({
+            url,
+            body: {
+                pricingRefs: input.pricingRequests,
+            },
         });
 
         switch (getPriceOptimizationsOutputClient.kind) {

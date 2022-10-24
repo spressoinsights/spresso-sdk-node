@@ -2,7 +2,7 @@ name: CI
 on:
     - pull_request
 jobs:
-    job1:
+    e2eTesting:
         runs-on: ubuntu-latest
         name: E2E Testing
         steps:
@@ -23,3 +23,16 @@ jobs:
               run: |
                   nix-shell --command "make -f ./commands.nixwrap installForE2ETesting"
                   nix-shell --command "make -f ./commands.nixwrap e2eTesting"
+    unitTesting:
+        runs-on: ubuntu-latest
+        name: Unit Testing
+        steps:
+            - uses: actions/checkout@v3
+            - name: Install Nix Package Manager
+              uses: cachix/install-nix-action@v18
+              with:
+                  nix_path: nixpkgs=channel:nixos-22.05
+            - name: Install
+              run: nix-shell --command "make -f ./commands.nixwrap install"
+            - name: Unit Testing
+              run: nix-shell --command "make -f ./commands.nixwrap unitTesting"

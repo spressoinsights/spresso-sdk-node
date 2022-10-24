@@ -9,7 +9,8 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./packages/http_client"
+        "lint": "cd ../../ && npx eslint ./packages/http_client",
+        "test:unit": "npx mocha ./**/**.unit.test.ts"
     },
     "author": {
         "name": "Spresso SDK for JavaScript Team"
@@ -20,7 +21,8 @@
         "cockatiel": "3.0.0"
     },
     "devDependencies": {
-        "concurrently": "7.0.0"
+        "concurrently": "7.0.0",
+        "nock": "13.2.9"
     },
     "engines": {
         "node": ">= 12.0.0"
