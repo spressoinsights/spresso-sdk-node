@@ -9,12 +9,8 @@ export class HttpClientOptions {
         defaultTimeoutMs: 5000, // 5 second default timeout
     };
 
-    constructor(
-        readonly options?: {
-            timeoutMs?: number;
-        }
-    ) {
-        const defaultedOptions = { ...options, ...this.defaultOptions };
+    constructor(options?: { defaultTimeoutMs?: number }) {
+        const defaultedOptions = { ...this.defaultOptions, ...options };
         this.defaultTimeoutMs = this.sanitizeDefaultTimeoutMS(defaultedOptions);
     }
 

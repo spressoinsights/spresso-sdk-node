@@ -9,7 +9,8 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./packages/auth"
+        "lint": "cd ../../ && npx eslint ./packages/auth",
+        "test:unit": "npx mocha ./**/**.unit.test.ts"
     },
     "author": {
         "name": "Spresso SDK for JavaScript Team"
