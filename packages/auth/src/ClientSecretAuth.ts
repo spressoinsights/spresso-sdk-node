@@ -9,7 +9,6 @@ type LocalAccessToken = {
 };
 
 export class ClientSecretAuth implements IAuth {
-    //private readonly url = 'https://dev-369tg5rm.us.auth0.com/oauth/token';
     private readonly httpClient: HttpClient;
 
     private localAccessToken: LocalAccessToken | undefined;

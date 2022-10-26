@@ -138,7 +138,7 @@ export class PriceOptimimizationClient {
     }
 
     private allowUserAgent(userAgent: string, userAgentBlacklistRegExp: RegExp[]): boolean {
-        return userAgentBlacklistRegExp.some((regex) => regex.test(userAgent));
+        return !userAgentBlacklistRegExp.some((regex) => regex.test(userAgent));
     }
 
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<PriceOptimization> {

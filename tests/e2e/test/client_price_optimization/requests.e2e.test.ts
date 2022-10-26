@@ -9,10 +9,11 @@ import {
 import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
 import { expect } from 'chai';
 
-async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0) {
+async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0): Promise<void> {
     const input = { userId: 'abc', itemId: 'SomeItemId', fallBackPrice: 3 };
 
     const res = await client.getPriceOptimization({ ...input, userAgent: '' });
+
     // just an example
     expect({ ...input, price: input.fallBackPrice }).to.include(res);
 }
@@ -23,6 +24,7 @@ describe('Version 1.0', () => {
             const options = new PriceOptimizationClientOptions_1_0({
                 authenticator: new ClientSecretAuth_1_0(
                     new ClientSecretAuthOptions_1_0({
+                        url: 'https://dev-369tg5rm.us.auth0.com/oauth/token/',
                         clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
                         clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
                     })
