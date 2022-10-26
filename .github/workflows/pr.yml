@@ -34,5 +34,7 @@ jobs:
                   nix_path: nixpkgs=channel:nixos-22.05
             - name: Install & Bootstrap
               run: nix-shell --command "make -f ./commands.nixwrap bootstrap"
+            - name: Build
+              run: nix-shell --command "make -f ./commands.nixwrap build"
             - name: Unit Testing
               run: nix-shell --command "make -f ./commands.nixwrap unitTesting"
