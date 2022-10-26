@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ClientSecretAuthOptions } from '../../../src/types/models';
 
-describe('HttpClientOptions', () => {
+describe('ClientSecretAuthOptions', () => {
     it('Defaults All Fields', () => {
         const options = new ClientSecretAuthOptions({
             clientId: '2331idj3ij',
