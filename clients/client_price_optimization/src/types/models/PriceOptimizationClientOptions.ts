@@ -42,7 +42,7 @@ export class PriceOptimizationClientOptions {
         this.resiliencyPolicy = { ...options.resiliencyPolicy, ...this.defaultResiliencyPolicy };
 
         this.resiliencyPolicy.numberOfRetries = this.sanitizeResiliencyPolicyNumberOfRetries(this.resiliencyPolicy);
-        this.resiliencyPolicy.timeoutMs = this.sanitizeTimeout(this.resiliencyPolicy);
+        this.resiliencyPolicy.timeoutMs = this.sanitizeTimeoutMs(this.resiliencyPolicy);
         this.resiliencyPolicy.circuitBreakerBreakDurationMs = this.sanitizeCircuitBreakerBreakDurationMs(
             this.resiliencyPolicy
         );
@@ -68,9 +68,9 @@ export class PriceOptimizationClientOptions {
             : policy.numberOfFailuresBeforeTrippingCircuitBreaker;
     }
 
-    private sanitizeTimeout(policy: ResiliencyPolicy): number {
-        if (policy.timeoutMs <= 0) return 0;
-        else if (policy.timeoutMs >= 180) return 180;
+    private sanitizeTimeoutMs(policy: ResiliencyPolicy): number {
+        if (policy.timeoutMs <= 0) return 10000;
+        else if (policy.timeoutMs >= 180000) return 180000;
         else return policy.timeoutMs;
     }
 }
