@@ -1,12 +1,9 @@
-import { HttpClient, HttpClientOptions, HttpResponseError } from '@spresso-sdk/http_client';
+import { HttpClient, HttpClientOptions, HttpResponse, HttpResponseError } from '@spresso-sdk/http_client';
+import { mapAuth0ToLocalAccessToken, shouldGetAccessToken } from './ClientSecretAuthUtils';
 import { IAuth } from './IAuth';
 import { ClientSecretAuthOptions } from './types/models';
 import { Auth0Response } from './types/models/Auth0';
-
-type LocalAccessToken = {
-    accessToken: string;
-    expiresIn: Date;
-};
+import { LocalAccessToken } from './types/models/LocalAccessToken';
 
 export class ClientSecretAuth implements IAuth {
     private readonly httpClient: HttpClient;
@@ -21,11 +18,12 @@ export class ClientSecretAuth implements IAuth {
         { success: true; accessToken: string } | { success: false; error: HttpResponseError }
     > {
         if (
-            this.localAccessToken == undefined ||
-            // Note: Defualt if 5 min
-            this.localAccessToken.expiresIn.getTime() - Date.now() <= this.options.credentialsExpireWindowMs
+            shouldGetAccessToken({
+                accessToken: this.localAccessToken,
+                currentDate: new Date(),
+                credentialsExpireWindowMs: this.options.credentialsExpireWindowMs,
+            })
         ) {
-            // add retry here
             const refreshTokenOrFailure = await this.getAndSaveAccessTokenLocally();
             if (!refreshTokenOrFailure.success) {
                 return refreshTokenOrFailure;
@@ -40,24 +38,16 @@ export class ClientSecretAuth implements IAuth {
     private async getAndSaveAccessTokenLocally(): Promise<
         { success: true } | { success: false; error: HttpResponseError }
     > {
-        const input = {
-            client_id: this.options.clientId,
-            client_secret: this.options.clientSecret,
-            audience: 'https://spresso-api',
-            grant_type: 'client_credentials',
-        };
-
-        const response = await this.httpClient.post<Auth0Response>({ url: this.options.url, body: input });
+        const response = await this.getAccessTokenFromAuthApi();
 
         switch (response.kind) {
             case 'Ok': {
-                const dateTimeNow = new Date();
-                const expiresIn = new Date(dateTimeNow.setSeconds(dateTimeNow.getSeconds() + response.body.expires_in));
+                // eslint-disable-next-line functional/immutable-data
+                this.localAccessToken = mapAuth0ToLocalAccessToken({
+                    auth0Response: response.body,
+                    currentDate: new Date(),
+                });
 
-                this.localAccessToken = {
-                    accessToken: this.ensureBearerPrepended(response.body.access_token),
-                    expiresIn,
-                };
                 return { success: true };
             }
             case 'BadRequest':
@@ -68,7 +58,14 @@ export class ClientSecretAuth implements IAuth {
         }
     }
 
-    private ensureBearerPrepended(token: string): string {
-        return !token.startsWith('bearer') && !token.startsWith('Bearer') ? `Bearer ${token}` : token;
+    private async getAccessTokenFromAuthApi(): Promise<HttpResponse<Auth0Response>> {
+        const input = {
+            client_id: this.options.clientId,
+            client_secret: this.options.clientSecret,
+            audience: 'https://spresso-api',
+            grant_type: 'client_credentials',
+        };
+
+        return this.httpClient.post<Auth0Response>({ url: this.options.url, body: input });
     }
 }
