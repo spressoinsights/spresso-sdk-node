@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: redis4
+spec:
+    containers:
+        - name: redis
+          image: redis:4
+          resources:
+              limits:
+                  memory: 512Mi
+                  cpu: 200
+              requests:
+                  memory: 512Mi
+                  cpu: 200m

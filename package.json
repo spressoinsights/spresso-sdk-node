@@ -9,6 +9,7 @@
         "build": "lerna run build",
         "lint": "npx eslint ./packages",
         "test:unit": "lerna run test:unit",
+        "test:integration": "lerna run test:integration",
         "patch": "lerna version --no-git-tag-version --no-push --yes patch",
         "localPublish": "lerna publish from-package --yes --no-git-tag-version --no-push --registry http://localhost:4873",
         "createTestNPMUser": "npm-cli-adduser --registry http://localhost:4873 --username testuser --password testpass --email test@example.com"

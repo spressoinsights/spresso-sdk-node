@@ -5,6 +5,8 @@ installForE2ETesting:
 	cd tests/e2e && npm run installFromLocalRegistry
 unitTesting:
 	npm run test:unit
+integrationTesting:
+	npm run test:integration
 e2eTesting: installForE2ETesting
 	cd tests/e2e && npx mocha "./**/**.test.ts"
 bootstrap: install
@@ -21,22 +23,35 @@ localPublish: build createTestNPMUser
 	npm run localPublish
 
 startMinikube:
-	minikube start --driver=virtualbox --memory 7000Mi --cpus 4 &&\
+	minikube start --driver=virtualbox --memory 3000Mi --cpus 2 &&\
 	echo "Need to wait for service account to be created." &&\
 	sleep 5
 minikubeDashboard:
 	minikube dashboard
-startServicesLocal: startMinikube
+
+startE2EServicesLocal: startMinikube
 	make -f ./commands.nixwrap -j 1 startVerdaccioMinikubeLocal
+startIntegrationServicesLocal: startMinikube
+	make -f ./commands.nixwrap -j 1 startRedis4MinikubeLocal
 startVerdaccioMinikubeLocal:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
 	kubectl port-forward verdaccio 4873:4873 
+startRedis4MinikubeLocal:
+	kubectl create -f ./minikube/redis4.yaml || true &&\
+	kubectl wait --for=condition=ready --timeout=300s pod/redis4 &&\
+	kubectl port-forward redis4 6379:9004 
 
 
-startServicesCI:
+startE2EServicesCI:
 	make -f ./commands.nixwrap -j 1 startVerdaccioMinikubeCI
+startIntegrationServicesCI: startMinikube
+	make -f ./commands.nixwrap -j 1 startRedis4MinikubeCI
 startVerdaccioMinikubeCI:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
 	kubectl port-forward verdaccio 4873:4873 &
+startRedis4MinikubeCI:
+	kubectl create -f ./minikube/redis4.yaml || true &&\
+	kubectl wait --for=condition=ready --timeout=300s pod/redis4 &&\
+	kubectl port-forward redis4 6379:9004 &

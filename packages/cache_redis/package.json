@@ -9,7 +9,8 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./packages/cache_redis"
+        "lint": "cd ../../ && npx eslint ./packages/cache_redis",
+        "test:integration": "npx mocha ./**/**.integration.test.ts"
     },
     "author": {
         "name": "Spresso SDK for JavaScript Team"
