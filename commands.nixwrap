@@ -45,7 +45,7 @@ startRedis4MinikubeLocal:
 
 startE2EServicesCI:
 	make -f ./commands.nixwrap -j 1 startVerdaccioMinikubeCI
-startIntegrationServicesCI: startMinikube
+startIntegrationServicesCI:
 	make -f ./commands.nixwrap -j 1 startRedis4MinikubeCI
 startVerdaccioMinikubeCI:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
