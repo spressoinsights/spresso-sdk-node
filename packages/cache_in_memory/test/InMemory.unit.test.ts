@@ -5,10 +5,10 @@ import { expectCacheHit, expectCacheMiss, expectFatalError } from '../../cache/t
 import { inMemoryKeyToString } from '../src/InMemoryUtils';
 import { baseCacheTests, TestKey, TestValue } from '../../cache/test/BaseCacheTests';
 
-// run base cache tests
-baseCacheTests(() => new InMemory<TestKey, TestValue>({ maxElementCount: 100, defaultTtlMs: 10000 }));
-
 describe('Cache - InMemory', () => {
+    // eslint-disable-next-line mocha/no-setup-in-describe
+    baseCacheTests(() => new InMemory<TestKey, TestValue>({ maxElementCount: 100, defaultTtlMs: 10000 }));
+
     describe('Class', () => {
         it('will evict on size', async () => {
             // Note: only one element is allowed in the cache

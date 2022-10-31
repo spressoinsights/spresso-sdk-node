@@ -7,7 +7,7 @@ export type TestKey = { key0: string; key1: string };
 export type TestValue = { field: string };
 
 export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestValue>): void {
-    describe('Cache - InMemory', () => {
+    describe('Cache', () => {
         describe('Class - "single" operations', () => {
             it('successfully caches and gets', async () => {
                 const cache = genCacheFunc();
