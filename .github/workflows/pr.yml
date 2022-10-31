@@ -55,5 +55,5 @@ jobs:
               run: nix-shell --command "make -f ./commands.nixwrap bootstrap"
             - name: Build
               run: nix-shell --command "make -f ./commands.nixwrap build"
-            - name: Unit Testing
+            - name: Integration Testing
               run: nix-shell --command "make -f ./commands.nixwrap integrationTesting"
