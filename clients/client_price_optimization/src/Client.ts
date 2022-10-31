@@ -51,7 +51,7 @@ export class PriceOptimimizationClient {
         this.options = options;
         this.httpClient = new HttpClientOrg(options.authenticator, new HttpClientOptions());
         this.cache = options.cachingStrategy;
-        this.configCache = new InMemory({ maxElementCount: 100 });
+        this.configCache = new InMemory({ maxElementCount: 100, defaultTtlMs: 900000 });
 
         this.getPriceOptimizationResiliencyPolicy = this.resiliencyPolicy();
         this.getPriceOptimizationsResiliencyPolicy = this.resiliencyPolicy();
