@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { HttpClient } from '../src/HttpClient';
 import { HttpClientOptions } from '../src/types';
 import nock from 'nock';
-import { expectOk, expectAuthError, expectBadRequest, expectTimeout, expectUnknown } from './utils/assert';
+import { expectOk, expectAuthError, expectBadRequest, expectTimeout, expectUnknown } from './utils/Assert';
 
 describe('HttpClient', () => {
     describe('GET', () => {

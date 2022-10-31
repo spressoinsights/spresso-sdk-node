@@ -18,6 +18,7 @@ import { RedisClientType } from 'redis';
 
 export class RedisCache<Key extends Record<string, string>, Output> implements ICacheStrategy<Key, Output> {
     // satodo make this an interface so we can ducktype... we dont need to have a handle on an actual redis instance
+
     constructor(private readonly redisClient: RedisClientType<any, any>) {}
 
     private keyToString<Key>(key: Key): string {
@@ -30,7 +31,10 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
         return `SpressoPriceOptimization-${redisKey}`;
     }
 
-    private mapGetRedis(input: CacheInputGet<Key>, item: string | null | undefined): CacheHit<Output> | CacheMiss<Key> {
+    private mapGetRedis(
+        input: Required<CacheInputGet<Key>>,
+        item: string | null | undefined
+    ): CacheHit<Output> | CacheMiss<Key> {
         const parsedItem: CacheEntry<Output> | undefined =
             item == null || item == undefined ? undefined : (JSON.parse(item) as CacheEntry<Output>);
 
@@ -40,7 +44,13 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
     async get(input: CacheInputGet<Key>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError> {
         try {
             const item = await this.redisClient.get(this.keyToString(input.key));
-            return { kind: 'Ok', ok: this.mapGetRedis(input, item) };
+
+            const mapInput: Required<CacheInputGet<Key>> = {
+                key: input.key,
+                evictIfBeforeDate: input.evictIfBeforeDate,
+            };
+
+            return { kind: 'Ok', ok: this.mapGetRedis(mapInput, item) };
         } catch (error) {
             return { kind: 'FatalError', error: error };
         }
@@ -57,7 +67,18 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
                 input.keys.map((key) => ({ ...input, key }))
             );
 
-            return { kind: 'Ok', ok: zippedList.map((x) => this.mapGetRedis(x[1] as CacheInputGet<Key>, x[0])) };
+            return {
+                kind: 'Ok',
+                ok: zippedList.map((x) => {
+                    const cacheInput = x[1] as CacheInputGet<Key>;
+                    const mapInput: Required<CacheInputGet<Key>> = {
+                        key: cacheInput.key,
+                        evictIfBeforeDate: cacheInput.evictIfBeforeDate,
+                    };
+
+                    return this.mapGetRedis(mapInput, x[0]);
+                }),
+            };
         } catch (error) {
             return { kind: 'FatalError', error };
         }
@@ -67,8 +88,7 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
         try {
             const cacheEntryInput: CacheEntry<Output> = {
                 data: input.entry.value,
-                dateAdded: input.now,
-                ttlMs: input.ttlMs,
+                dateAdded: input.logicalDateAdded,
             };
             await this.redisClient.set(this.keyToString(input.entry.key), JSON.stringify(cacheEntryInput), {
                 PX: input.ttlMs,
@@ -81,13 +101,12 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
 
     async setMany(input: CacheInputSetMany<Key, Output>): Promise<Ok<Output[]> | FatalError> {
         try {
-            // Note: Multiple updates in one statement is not optimal.
+            // Note: Multiple updates in one statement is not optimal. ie. mSet
             await Promise.all(
                 input.entries.map(async (i) => {
                     const cacheEntryInput: CacheEntry<Output> = {
                         data: i.value,
-                        dateAdded: input.now,
-                        ttlMs: input.ttlMs,
+                        dateAdded: input.logicalDateAdded,
                     };
                     await this.redisClient.set(this.keyToString(i.key), JSON.stringify(cacheEntryInput), {
                         PX: input.ttlMs,

@@ -1,12 +1,21 @@
-export type CacheInputGet<Key extends Record<string, string>> = { key: Key; now: Date; ttlMs: number };
-export type CacheInputGetMany<Key extends Record<string, string>> = { keys: Key[]; now: Date; ttlMs: number };
+import { SyncServerDate } from '../models';
+
+export type CacheInputGet<Key extends Record<string, string>> = {
+    key: Key;
+    evictIfBeforeDate?: SyncServerDate | undefined;
+};
+
+export type CacheInputGetMany<Key extends Record<string, string>> = {
+    keys: Key[];
+    evictIfBeforeDate?: SyncServerDate | undefined;
+};
 
 export type CacheInputSet<Key extends Record<string, string>, Output> = {
     entry: {
         key: Key;
         value: Output;
     };
-    now: Date;
+    logicalDateAdded: SyncServerDate; // Logical date the entry is being added to the cache with
     ttlMs: number;
 };
 
@@ -15,7 +24,7 @@ export type CacheInputSetMany<Key extends Record<string, string>, Output> = {
         key: Key;
         value: Output;
     }[];
-    now: Date;
+    logicalDateAdded: SyncServerDate; // Logical date the entry is being added to the cache with
     ttlMs: number;
 };
 

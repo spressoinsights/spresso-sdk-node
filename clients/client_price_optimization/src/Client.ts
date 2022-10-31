@@ -1,4 +1,4 @@
-import { CacheMiss, ICacheStrategy } from '@spresso-sdk/cache';
+import { CacheMiss, ICacheStrategy, SpressoServerDate, SyncServerDate } from '@spresso-sdk/cache';
 import { HttpClientOrg } from '@spresso-sdk/http_client_org';
 import {
     GetPriceOptimizationInput,
@@ -51,7 +51,7 @@ export class PriceOptimimizationClient {
         this.options = options;
         this.httpClient = new HttpClientOrg(options.authenticator, new HttpClientOptions());
         this.cache = options.cachingStrategy;
-        this.configCache = new InMemory();
+        this.configCache = new InMemory({ maxElementCount: 100 });
 
         this.getPriceOptimizationResiliencyPolicy = this.resiliencyPolicy();
         this.getPriceOptimizationsResiliencyPolicy = this.resiliencyPolicy();
@@ -106,11 +106,24 @@ export class PriceOptimimizationClient {
         };
     }
 
+    private async getServerTime(): Promise<SpressoServerDate> {
+        // hits some date endpoint
+        // if cant resolve then return current date of the sdk...or fail to initalize?
+        return Promise.resolve(new Date() as SpressoServerDate);
+    }
+
+    private async syncServerTime(): Promise<SyncServerDate> {
+        const now = new Date().valueOf();
+        const serverTime = (await this.getServerTime()).valueOf(); // should be memoized
+
+        return new Date(now + (now - serverTime)) as SyncServerDate;
+    }
+
     // rough draft here
     private async getFeatureConfig(): Promise<PriceOptimizationFeatureConfig> {
         // add ttl to feature of 15 min to ttl config...
         const configTtlMs = 900000;
-        const config = await this.configCache.get({ key: { config: 'config' }, now: new Date(), ttlMs: configTtlMs });
+        const config = await this.configCache.get({ key: { config: 'config' } });
 
         switch (config.kind) {
             case 'Ok':
@@ -118,6 +131,7 @@ export class PriceOptimimizationClient {
                     case 'CacheHit':
                         return config.ok.value;
                     case 'CacheMiss': {
+                        // get server time as well and cache in config
                         // this can fail so we need some defaults in the sdk itself
                         const apiResponse = await Promise.resolve({
                             ttlMs: 3600000,
@@ -127,8 +141,8 @@ export class PriceOptimimizationClient {
 
                         await this.configCache.set({
                             entry: { key: { config: 'config' }, value: apiResponse },
-                            now: new Date(),
                             ttlMs: configTtlMs,
+                            logicalDateAdded: await this.syncServerTime(),
                         });
 
                         return apiResponse;
@@ -181,8 +195,6 @@ export class PriceOptimimizationClient {
 
         const cachedItem = await this.cache.get({
             key: { userId: input.userId, itemId: input.itemId },
-            now: new Date(),
-            ttlMs: config.ttlMs,
         });
 
         switch (cachedItem.kind) {
@@ -196,8 +208,8 @@ export class PriceOptimimizationClient {
                 await this.cache
                     .set({
                         entry: this.getKeyObj(result.ok),
-                        now: new Date(),
                         ttlMs: config.ttlMs,
+                        logicalDateAdded: await this.syncServerTime(), //[this.spressoServerTime(), dateFromConfig the last job run date].max()
                     })
                     .catch(); // dont error on not being able to cache ... need to add logging func as an input
                 return result;
@@ -215,8 +227,8 @@ export class PriceOptimimizationClient {
                         await this.cache
                             .set({
                                 entry: this.getKeyObj(result.ok),
-                                now: new Date(),
                                 ttlMs: config.ttlMs,
+                                logicalDateAdded: await this.syncServerTime(),
                             })
                             .catch(); // dont error on not being able to cache ... need to add logging func as an input
                         return result;
@@ -300,8 +312,6 @@ export class PriceOptimimizationClient {
 
         const cachedItems = await this.cache.getMany({
             keys: input.pricingRequests.map((x) => ({ userId: x.userId, itemId: x.itemId })),
-            now: new Date(),
-            ttlMs: config.ttlMs,
         });
 
         switch (cachedItems.kind) {
@@ -366,12 +376,12 @@ export class PriceOptimimizationClient {
                 await this.cache
                     .setMany({
                         entries: apiResponses.ok.map((x) => this.getKeyObj(x)),
-                        now: new Date(),
+                        logicalDateAdded: await this.syncServerTime(),
                         ttlMs: config.ttlMs,
                     })
                     .catch();
 
-                // Note: We do this to preserver order
+                // Note: We do this to preserve order
                 return {
                     kind: 'Ok',
                     ok: cachedItems.ok.map((cacheOutput) => {
