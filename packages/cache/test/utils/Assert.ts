@@ -1,4 +1,11 @@
-import { CacheHit, CacheMiss, CacheResult, FatalError, Ok } from '../src/types';
+import { CacheHit, CacheMiss, CacheResult, FatalError, Ok } from '../../src/types';
+
+type ExpectOk = <T, Key extends Record<string, string>>(response: Ok<T> | FatalError) => asserts response is Ok<T>;
+export const expectOk: ExpectOk = (response) => {
+    if (response.kind != 'Ok') {
+        throw new Error(`Expected reponse to be Ok but found ${JSON.stringify(response)}.`);
+    }
+};
 
 type ExpectCacheHit = <T, Key extends Record<string, string>>(
     response: CacheResult<T, Key>
