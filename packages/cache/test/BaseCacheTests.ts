@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-exports */
-import { CacheInputGet, CacheInputSet, CacheInputSetMany, ICacheStrategy, SyncServerDate } from '@spresso-sdk/cache';
+import { CacheInputGet, CacheInputSet, CacheInputSetMany, ICacheStrategy, SyncServerDate } from '../src/types';
 import { expect } from 'chai';
 import { expectCacheHit, expectCacheMiss, expectFatalError, expectOk } from '../../cache/test/utils/Assert';
 
