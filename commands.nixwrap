@@ -23,7 +23,7 @@ localPublish: build createTestNPMUser
 	npm run localPublish
 
 startMinikube:
-	minikube start --driver=virtualbox --memory 3000Mi --cpus 2 &&\
+	minikube start --driver=virtualbox --memory 7000Mi --cpus 4 &&\
 	echo "Need to wait for service account to be created." &&\
 	sleep 5
 minikubeDashboard:
