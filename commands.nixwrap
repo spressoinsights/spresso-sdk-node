@@ -41,7 +41,7 @@ startIntegrationServicesLocal: startMinikube
 startRedis6MinikubeLocal:
 	kubectl create -f ./minikube/redis6.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/redis6 &&\
-	kubectl port-forward redis6 9004:9004 
+	kubectl port-forward redis6 9006:9006
 
 startE2EServicesCI:
 	make -f ./commands.nixwrap -j1 startVerdaccioMinikubeCI
@@ -55,4 +55,4 @@ startIntegrationServicesCI:
 startRedis6MinikubeCI:
 	kubectl create -f ./minikube/redis6.yaml &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/redis6 &&\
-	kubectl port-forward redis6 9004:9004 &
+	kubectl port-forward redis6 9006:9006 &
