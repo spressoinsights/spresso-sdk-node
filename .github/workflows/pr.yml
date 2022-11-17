@@ -23,7 +23,7 @@ jobs:
               run: nix-shell --command "make -f ./commands.nixwrap localPublish"
             - name: E2E Testing
               env:
-                super_secret: ${{ secrets.CLIENTSECRET }}
+                CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
               run: |
                   nix-shell --command "make -f ./commands.nixwrap installForE2ETesting"
                   nix-shell --command "make -f ./commands.nixwrap e2eTesting"
