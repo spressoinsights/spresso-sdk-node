@@ -10,7 +10,7 @@ import {
 } from '@spresso-sdk/auth_1.0';
 import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
 import { expect } from 'chai';
-import { assertString } from 'test/utils';
+import { assertString } from '../utils';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
