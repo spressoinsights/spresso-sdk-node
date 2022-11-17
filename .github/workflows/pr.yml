@@ -15,11 +15,6 @@ jobs:
                   nix_path: nixpkgs=channel:nixos-22.05
             - name: Deploy to minikube
               run: nix-shell --command "make -f ./commands.nixwrap startE2EServicesCI"
-            - name: Test service URLs
-              run: |
-                minikube service list
-                kubectl get pods redis4 -o jsonpath='{.spec.containers[*]}'
-                nix-shell --command "redis-cli -p 9004 ping"
             - name: Install
               run: nix-shell --command "make -f ./commands.nixwrap install"
             - name: Local Publish
@@ -58,7 +53,10 @@ jobs:
               run: nix-shell --command "make -f ./commands.nixwrap startIntegrationServicesCI"
             - name: Test service URLs
               run: |
+                sleep 10
                 minikube service list
+                kubectl get pods --namespace default
+                kubectl get pods --namespace kube-system
                 kubectl get pods redis4 -o jsonpath='{.spec.containers[*]}'
                 nix-shell --command "redis-cli -p 9004 ping"
             - name: Install & Bootstrap
