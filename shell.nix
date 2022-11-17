@@ -8,6 +8,7 @@ in
     buildInputs = with pkgs; [
       node16_17_1.nodejs-16_x
       gnumake
+      redis
     ];
     shellHook = ''
     '';
