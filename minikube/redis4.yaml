@@ -10,8 +10,8 @@ spec:
           args: ["--port 9004"]
           resources:
               limits:
-                  memory: 512Mi
-                  cpu: 200
+                  memory: 1024Mi
+                  cpu: 400
               requests:
-                  memory: 512Mi
-                  cpu: 200m
+                  memory: 1024Mi
+                  cpu: 400m
