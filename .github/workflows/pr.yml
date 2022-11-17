@@ -16,7 +16,7 @@ jobs:
             - name: Deploy to minikube
               run: nix-shell --command "make -f ./commands.nixwrap startE2EServicesCI"
             - name: Log Minikube Deployed Services
-              run: kubectl describe Pod redis4
+              run: kubectl describe Pod verdaccio
             - name: Install
               run: nix-shell --command "make -f ./commands.nixwrap install"
             - name: Local Publish
