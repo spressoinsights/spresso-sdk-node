@@ -54,7 +54,7 @@ jobs:
             - name: Deploy to minikube
               run: nix-shell --command "make -f ./commands.nixwrap startIntegrationServicesCI"
             - name: Log Minikube Deployed Services
-              run: kubectl describe Pod redis4
+              run: kubectl describe Pod redis6
             - name: Install & Bootstrap
               run: nix-shell --command "make -f ./commands.nixwrap bootstrap"
             - name: Build

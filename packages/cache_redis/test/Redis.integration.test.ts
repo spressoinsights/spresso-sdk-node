@@ -6,9 +6,9 @@ import { createClient } from 'redis4';
 import { RedisCache } from '../src/Redis';
 import { redisKeyToString } from '../src/RedisUtils';
 
-describe('Cache - Redis 4', () => {
+describe('Cache - Redis 6', () => {
     it('satisfies base functionality', async () => {
-        const redisClient = createClient({ socket: { host: 'localhost', port: 9004 } });
+        const redisClient = createClient({ socket: { host: 'localhost', port: 9006 } });
         await redisClient.connect();
 
         baseCacheTests(() => {
