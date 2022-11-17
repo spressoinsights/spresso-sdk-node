@@ -58,6 +58,7 @@ jobs:
                 kubectl get pods --namespace default
                 kubectl get pods --namespace kube-system
                 kubectl logs redis4 -c redis4
+                kubectl describe Pod redis4
                 kubectl get pods redis4 -o jsonpath='{.spec.containers[*]}'
                 nix-shell --command "redis-cli -p 9004 ping"
             - name: Install & Bootstrap
