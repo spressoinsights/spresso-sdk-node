@@ -1,5 +1,7 @@
 import {
+    GetPriceOptimizationInput,
     PriceOptimimizationClient as PriceOptimimizationClient_1_0,
+    PriceOptimization,
     PriceOptimizationClientOptions as PriceOptimizationClientOptions_1_0,
 } from '@spresso-sdk/price_optimization_1.0';
 import {
@@ -10,12 +12,27 @@ import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
 import { expect } from 'chai';
 
 async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0): Promise<void> {
-    const input = { userId: 'abc', itemId: 'SomeItemId', fallBackPrice: 3 };
+    const input: GetPriceOptimizationInput = {
+        deviceId: 'somedeviceid',
+        userId: 'abc',
+        itemId: 'SomeItemId',
+        defaultPrice: 3,
+        userAgent: '',
+        overrideToDefaultPrice: false,
+    };
 
-    const res = await client.getPriceOptimization({ ...input, userAgent: '' });
+    const res = await client.getPriceOptimization(input);
+
+    const output: PriceOptimization = {
+        deviceId: input.deviceId,
+        itemId: input.itemId,
+        isPriceOptimized: false,
+        userId: input.userId,
+        price: input.defaultPrice,
+    };
 
     // just an example
-    expect({ ...input, price: input.fallBackPrice }).to.include(res);
+    expect(output).to.include(res);
 }
 
 describe('Version 1.0', () => {
