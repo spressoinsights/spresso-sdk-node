@@ -55,6 +55,7 @@ jobs:
               run: |
                 minikube service list
                 minikube service discover --url
+                kubectl get pods redis4 -o jsonpath='{.spec.containers[*].name}'
             - name: Install & Bootstrap
               run: nix-shell --command "make -f ./commands.nixwrap bootstrap"
             - name: Build
