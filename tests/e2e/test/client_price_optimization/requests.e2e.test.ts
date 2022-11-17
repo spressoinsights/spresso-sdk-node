@@ -10,6 +10,11 @@ import {
 } from '@spresso-sdk/auth_1.0';
 import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
 import { expect } from 'chai';
+import { assertString } from 'test/utils';
+
+const clientSecretEnv = process.env['CLIENTSECRET'];
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+assertString(clientSecretEnv);
 
 async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0): Promise<void> {
     const input: GetPriceOptimizationInput = {
@@ -43,7 +48,7 @@ describe('Version 1.0', () => {
                     new ClientSecretAuthOptions_1_0({
                         url: 'https://dev-369tg5rm.us.auth0.com/oauth/token/',
                         clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
-                        clientSecret: '7ugRF2iE7wDpJ5-IZkybHXZ2E5XRuket91HhBc-94F2MuXF6rUsL8Sl09WOdZF5I',
+                        clientSecret: clientSecretEnv,
                     })
                 ),
                 cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
