@@ -57,6 +57,7 @@ jobs:
                 minikube service list
                 kubectl get pods --namespace default
                 kubectl get pods --namespace kube-system
+                kubectl logs redisv4 -c redisv4
                 kubectl get pods redis4 -o jsonpath='{.spec.containers[*]}'
                 nix-shell --command "redis-cli -p 9004 ping"
             - name: Install & Bootstrap
