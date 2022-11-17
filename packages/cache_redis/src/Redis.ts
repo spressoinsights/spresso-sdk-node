@@ -1,5 +1,7 @@
+/* eslint-disable functional/immutable-data */
 import {
-    CacheEntry,
+    CacheEntryDeserialized,
+    CacheEntrySerialized,
     CacheHit,
     CacheInputDelete,
     CacheInputDeleteMany,
@@ -12,40 +14,60 @@ import {
     ICacheStrategy,
     mapGet,
     Ok,
+    parseCacheEntry,
+    ParserInput,
 } from '@spresso-sdk/cache';
 import lodash from 'lodash';
-import { RedisClientType } from 'redis';
+import { redisKeyToString } from './RedisUtils';
+import { RedisClient } from './types';
 
 export class RedisCache<Key extends Record<string, string>, Output> implements ICacheStrategy<Key, Output> {
-    // satodo make this an interface so we can ducktype... we dont need to have a handle on an actual redis instance
+    private serializer: (serializerInput: Output) => string = JSON.stringify;
 
-    constructor(private readonly redisClient: RedisClientType<any, any>) {}
+    private deserializer: (deserializerInput: ParserInput<Output>) => Output = (
+        deserializerInput: ParserInput<Output>
+    ) => deserializerInput as unknown as Output;
 
-    private keyToString<Key>(key: Key): string {
-        // eslint-disable-next-line functional/immutable-data
-        const redisKey = Object.entries(key)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map((x) => `${x[0]}:${x[1] as string}`)
-            .join('|');
+    constructor(private readonly redisClient: RedisClient) {}
 
-        return `SpressoPriceOptimization-${redisKey}`;
+    public setSerializationScheme(
+        serializer: (serializerInput: Output) => string,
+        deserializer: (deserializerInput: ParserInput<Output>) => Output
+    ): void {
+        this.deserializer = deserializer;
+        this.serializer = serializer;
     }
 
     private mapGetRedis(
-        input: Required<CacheInputGet<Key>>,
+        input: Required<CacheInputGet<Key, Output>>,
         item: string | null | undefined
     ): CacheHit<Output> | CacheMiss<Key> {
-        const parsedItem: CacheEntry<Output> | undefined =
-            item == null || item == undefined ? undefined : (JSON.parse(item) as CacheEntry<Output>);
+        const itemString: string | undefined = item == null || item == undefined ? undefined : item;
 
-        return mapGet<Key, Output>(input, parsedItem);
+        if (itemString == undefined) {
+            return { kind: 'CacheMiss', input: input.key };
+        }
+
+        try {
+            const parsedEntry = parseCacheEntry(itemString);
+
+            const parsedItem: CacheEntryDeserialized<Output> = {
+                data: this.deserializer(JSON.parse(parsedEntry.data) as ParserInput<Output>),
+                dateAdded: parsedEntry.dateAdded,
+            };
+
+            return mapGet<Key, Output>(input, parsedItem);
+        } catch (err) {
+            return { kind: 'CacheMiss', input: input.key };
+        }
     }
 
-    async get(input: CacheInputGet<Key>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError> {
+    // output parser input. can type check it as well.
+    async get(input: CacheInputGet<Key, Output>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError> {
         try {
-            const item = await this.redisClient.get(this.keyToString(input.key));
+            const item = await this.redisClient.get(redisKeyToString(input.key));
 
-            const mapInput: Required<CacheInputGet<Key>> = {
+            const mapInput: Required<CacheInputGet<Key, Output>> = {
                 key: input.key,
                 evictIfBeforeDate: input.evictIfBeforeDate,
             };
@@ -56,9 +78,11 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
         }
     }
 
-    async getMany(input: CacheInputGetMany<Key>): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError> {
+    async getMany(
+        input: CacheInputGetMany<Key, Output>
+    ): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError> {
         try {
-            const keys = input.keys.map((x) => this.keyToString(x));
+            const keys = input.keys.map((x) => redisKeyToString(x));
             const items = await this.redisClient.mGet(keys);
 
             // Note: Redis will return the list in the exact order as input.keys
@@ -70,8 +94,8 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
             return {
                 kind: 'Ok',
                 ok: zippedList.map((x) => {
-                    const cacheInput = x[1] as CacheInputGet<Key>;
-                    const mapInput: Required<CacheInputGet<Key>> = {
+                    const cacheInput = x[1] as CacheInputGet<Key, Output>;
+                    const mapInput: Required<CacheInputGet<Key, Output>> = {
                         key: cacheInput.key,
                         evictIfBeforeDate: cacheInput.evictIfBeforeDate,
                     };
@@ -86,11 +110,12 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
 
     async set(input: CacheInputSet<Key, Output>): Promise<Ok<Output> | FatalError> {
         try {
-            const cacheEntryInput: CacheEntry<Output> = {
-                data: input.entry.value,
+            const cacheEntryInput: CacheEntrySerialized = {
+                data: this.serializer(input.entry.value),
                 dateAdded: input.logicalDateAdded,
             };
-            await this.redisClient.set(this.keyToString(input.entry.key), JSON.stringify(cacheEntryInput), {
+
+            await this.redisClient.set(redisKeyToString(input.entry.key), JSON.stringify(cacheEntryInput), {
                 PX: input.ttlMs,
             });
             return { kind: 'Ok', ok: input.entry.value };
@@ -104,11 +129,11 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
             // Note: Multiple updates in one statement is not optimal. ie. mSet
             await Promise.all(
                 input.entries.map(async (i) => {
-                    const cacheEntryInput: CacheEntry<Output> = {
-                        data: i.value,
+                    const cacheEntryInput: CacheEntrySerialized = {
+                        data: this.serializer(i.value),
                         dateAdded: input.logicalDateAdded,
                     };
-                    await this.redisClient.set(this.keyToString(i.key), JSON.stringify(cacheEntryInput), {
+                    await this.redisClient.set(redisKeyToString(i.key), JSON.stringify(cacheEntryInput), {
                         PX: input.ttlMs,
                     });
                 })
@@ -122,7 +147,7 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
 
     async delete(input: CacheInputDelete<Key>): Promise<Ok<Key> | FatalError> {
         try {
-            await this.redisClient.del(this.keyToString(input.key));
+            await this.redisClient.del(redisKeyToString(input.key));
             return { kind: 'Ok', ok: input.key };
         } catch (error) {
             return { kind: 'FatalError', error };
@@ -131,7 +156,7 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
 
     async deleteMany(input: CacheInputDeleteMany<Key>): Promise<Ok<Key[]> | FatalError> {
         try {
-            await Promise.all(input.keys.map(async (i) => this.redisClient.del(this.keyToString(i))));
+            await Promise.all(input.keys.map(async (i) => this.redisClient.del(redisKeyToString(i))));
             return { kind: 'Ok', ok: input.keys };
         } catch (error) {
             return { kind: 'FatalError', error };

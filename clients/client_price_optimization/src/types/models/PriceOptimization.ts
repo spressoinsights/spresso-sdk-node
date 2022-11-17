@@ -1,5 +1,7 @@
 export type PriceOptimization = {
-    userId: string;
+    userId: string | null;
     itemId: string;
+    deviceId: string;
     price: number;
+    isPriceOptimized: boolean;
 };

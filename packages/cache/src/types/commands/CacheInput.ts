@@ -1,11 +1,20 @@
 import { SyncServerDate } from '../models';
 
-export type CacheInputGet<Key extends Record<string, string>> = {
+type Parseable = string | number | Date | boolean | RegExp;
+export type ParserInput<Output> = {
+    [key in keyof Output]: Output[key] extends Parseable
+        ? string
+        : Output[key] extends [infer I]
+        ? ParserInput<I>
+        : ParserInput<Output[key]>;
+};
+
+export type CacheInputGet<Key extends Record<string, string>, Output> = {
     key: Key;
     evictIfBeforeDate?: SyncServerDate | undefined;
 };
 
-export type CacheInputGetMany<Key extends Record<string, string>> = {
+export type CacheInputGetMany<Key extends Record<string, string>, Output> = {
     keys: Key[];
     evictIfBeforeDate?: SyncServerDate | undefined;
 };

@@ -1,1 +1,6 @@
-export type PriceOptimizationCacheKey = { userId: string; itemId: string };
+export type PriceOptimizationCacheKey = {
+    deviceId: string;
+    itemId: string;
+    defaultPrice: string;
+    overrideToDefaultPrice: string;
+};

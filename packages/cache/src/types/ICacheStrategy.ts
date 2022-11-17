@@ -6,11 +6,17 @@ import {
     CacheInputGetMany,
     CacheInputSet,
     CacheInputSetMany,
+    ParserInput,
 } from './commands/CacheInput';
 
 export interface ICacheStrategy<Key extends Record<string, string>, Output> {
-    get(input: CacheInputGet<Key>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError>;
-    getMany(input: CacheInputGetMany<Key>): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError>;
+    setSerializationScheme(
+        serializer: (serializerInput: Output) => string,
+        deserializer: (input: ParserInput<Output>) => Output
+    ): void;
+
+    get(input: CacheInputGet<Key, Output>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError>;
+    getMany(input: CacheInputGetMany<Key, Output>): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError>;
 
     set(input: CacheInputSet<Key, Output>): Promise<Ok<Output> | FatalError>;
     setMany(input: CacheInputSetMany<Key, Output>): Promise<Ok<Output[]> | FatalError>;

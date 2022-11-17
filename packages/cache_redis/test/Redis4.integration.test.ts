@@ -1,25 +1,36 @@
-import { CacheInputGet, CacheInputSet, CacheInputSetMany, ICacheStrategy, SyncServerDate } from '@spresso-sdk/cache';
+/* eslint-disable mocha/no-setup-in-describe */
+import { defaultSerialization } from '@spresso-sdk/cache';
 import { expect } from 'chai';
-import { expectCacheHit, expectCacheMiss, expectFatalError } from '../../cache/test/utils/Assert';
 import { baseCacheTests, TestKey, TestValue } from '../../cache/test/BaseCacheTests';
+import { createClient } from 'redis4';
+import { RedisCache } from '../src/Redis';
+import { redisKeyToString } from '../src/RedisUtils';
 
 describe('Cache - Redis 4', () => {
-    // // eslint-disable-next-line mocha/no-setup-in-base
-    //CacheTests(() => new <TestKey, TestValue>({ maxElementCount: 100, defaultTtlMs: 10000 }));
+    it('satisfies base functionality', async () => {
+        const redisClient = createClient({ socket: { host: 'localhost', port: 9004 } });
+        await redisClient.connect();
 
-    describe('Class', () => {
-        it('will evict on size', () => {
-            console.log();
+        baseCacheTests(() => {
+            const redisCache = new RedisCache<TestKey, TestValue>(redisClient);
+            redisCache.setSerializationScheme(defaultSerialization, (x) => ({
+                fieldString: x.fieldString,
+                fieldNumber: +x.fieldNumber,
+                fieldBoolean: Boolean(x.fieldBoolean),
+                fieldDate: new Date(x.fieldDate),
+                fieldRegExp: new RegExp(x.fieldRegExp),
+            }));
+
+            return redisCache;
         });
 
-        // it('will respect force eviction time', async () => {
-
-        // });
+        await redisClient.memoryPurge();
     });
 
-    // describe('Func - redisKeyToString', () => {
-    //     it('correctly converts', () => {
-
-    //     });
-    // });
+    describe('Func - inMemoryKeyToString', () => {
+        it('correctly converts', () => {
+            const keyString = redisKeyToString({ keyB: 'B', keyA: 'A' });
+            expect(keyString).to.be.eq('SpressoPriceOptimization-keyA:A|keyB:B');
+        });
+    });
 });
