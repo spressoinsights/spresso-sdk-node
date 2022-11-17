@@ -51,6 +51,10 @@ jobs:
                   nix_path: nixpkgs=channel:nixos-22.05
             - name: Deploy to minikube
               run: nix-shell --command "make -f ./commands.nixwrap startIntegrationServicesCI"
+            - name: Test service URLs
+              run: |
+                minikube service list
+                minikube service discover --url
             - name: Install & Bootstrap
               run: nix-shell --command "make -f ./commands.nixwrap bootstrap"
             - name: Build
