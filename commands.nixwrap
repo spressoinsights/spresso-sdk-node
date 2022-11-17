@@ -55,4 +55,4 @@ startIntegrationServicesCI:
 startRedis4MinikubeCI:
 	kubectl create -f ./minikube/redis4.yaml &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/redis4 &&\
-	kubectl port-forward redis4 9004:9004 &
+	kubectl port-forward redis4 6379:9004 &
