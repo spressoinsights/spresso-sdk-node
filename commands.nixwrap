@@ -25,7 +25,7 @@ localPublish: build createTestNPMUser
 startMinikube:
 	minikube start --driver=hyperkit --memory 7000Mi --cpus 4 &&\
 	echo "Need to wait for service account to be created." &&\
-	sleep 5
+	sleep 10
 minikubeDashboard:
 	minikube dashboard
 
@@ -45,12 +45,13 @@ startRedis4MinikubeLocal:
 
 startE2EServicesCI:
 	make -f ./commands.nixwrap -j1 startVerdaccioMinikubeCI
-startIntegrationServicesCI:
-	make -f ./commands.nixwrap -j1 startRedis4MinikubeCI
 startVerdaccioMinikubeCI:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
 	kubectl port-forward verdaccio 4873:4873 &
+
+startIntegrationServicesCI:
+	make -f ./commands.nixwrap -j1 startRedis4MinikubeCI
 startRedis4MinikubeCI:
 	kubectl create -f ./minikube/redis4.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/redis4 &&\
