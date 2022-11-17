@@ -44,14 +44,14 @@ startRedis4MinikubeLocal:
 	kubectl port-forward redis4 9004:9004 
 
 startE2EServicesCI:
-	sleep 10 && make -f ./commands.nixwrap -j1 startVerdaccioMinikubeCI
+	sleep 20 && make -f ./commands.nixwrap -j1 startVerdaccioMinikubeCI
 startVerdaccioMinikubeCI:
 	kubectl create -f ./minikube/verdaccio.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/verdaccio &&\
 	kubectl port-forward verdaccio 4873:4873 &
 
 startIntegrationServicesCI:
-	sleep 10 && make -f ./commands.nixwrap -j1 startRedis4MinikubeCI
+	sleep 20 && make -f ./commands.nixwrap -j1 startRedis4MinikubeCI
 startRedis4MinikubeCI:
 	kubectl create -f ./minikube/redis4.yaml || true &&\
 	kubectl wait --for=condition=ready --timeout=300s pod/redis4 &&\
