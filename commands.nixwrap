@@ -19,7 +19,9 @@ createTestNPMUser:
 	npm run createTestNPMUser || true
 patch: 
 	npm run patch
-localPublish: build createTestNPMUser
+localRemovePackage:
+	kubectl exec --stdin --tty verdaccio -- rm -r /verdaccio/storage/data || true
+localPublish: build createTestNPMUser localRemovePackage
 	npm run localPublish
 
 startMinikube:
