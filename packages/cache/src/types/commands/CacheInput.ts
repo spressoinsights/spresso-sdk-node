@@ -9,12 +9,12 @@ export type ParserInput<Output> = {
         : ParserInput<Output[key]>;
 };
 
-export type CacheInputGet<Key extends Record<string, string>, Output> = {
+export type CacheInputGet<Key extends Record<string, string>> = {
     key: Key;
     evictIfBeforeDate?: SyncServerDate | undefined;
 };
 
-export type CacheInputGetMany<Key extends Record<string, string>, Output> = {
+export type CacheInputGetMany<Key extends Record<string, string>> = {
     keys: Key[];
     evictIfBeforeDate?: SyncServerDate | undefined;
 };

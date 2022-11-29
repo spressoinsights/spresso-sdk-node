@@ -2,7 +2,7 @@ import { CacheHit, CacheInputGet, CacheMiss } from './types';
 import { CacheEntryDeserialized } from './types/models';
 
 export function mapGet<Key extends Record<string, string>, Output>(
-    input: Required<CacheInputGet<Key, Output>>,
+    input: Required<CacheInputGet<Key>>,
     item: CacheEntryDeserialized<Output> | undefined | null
 ): CacheHit<Output> | CacheMiss<Key> {
     if (item == undefined || item == null) {
@@ -15,7 +15,7 @@ export function mapGet<Key extends Record<string, string>, Output>(
     if (input.evictIfBeforeDate != undefined && parsedItem.dateAdded <= input.evictIfBeforeDate) {
         return { kind: 'CacheMiss', input: input.key };
     } else {
-        return { kind: 'CacheHit', value: parsedItem.data };
+        return { kind: 'CacheHit', cachedValue: parsedItem.data };
     }
 }
 

@@ -10,9 +10,9 @@ import {
     CacheMiss,
     ICacheStrategy,
     mapGet,
-    Ok,
     ParserInput,
     sanitizeTtl,
+    Success,
 } from '@spresso-sdk/cache';
 
 import LRUCache from 'lru-cache';
@@ -41,24 +41,24 @@ export class InMemory<Key extends Record<string, string>, Output> implements ICa
         this.serializer = serializer;
     }
 
-    async get(input: CacheInputGet<Key, Output>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>>> {
+    async get(input: CacheInputGet<Key>): Promise<Success<CacheHit<Output> | CacheMiss<Key>>> {
         const item = this.lruCache.get(inMemoryKeyToString(input.key));
 
-        const mapInput: Required<CacheInputGet<Key, Output>> = {
+        const mapInput: Required<CacheInputGet<Key>> = {
             key: input.key,
             evictIfBeforeDate: input.evictIfBeforeDate,
         };
 
-        return Promise.resolve({ kind: 'Ok', ok: mapGet<Key, Output>(mapInput, item) });
+        return Promise.resolve({ kind: 'Success', value: mapGet<Key, Output>(mapInput, item) });
     }
 
-    async getMany(input: CacheInputGetMany<Key, Output>): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]>> {
+    async getMany(input: CacheInputGetMany<Key>): Promise<Success<(CacheHit<Output> | CacheMiss<Key>)[]>> {
         return Promise.resolve({
-            kind: 'Ok',
-            ok: input.keys.map((x) => {
+            kind: 'Success',
+            value: input.keys.map((x) => {
                 const item = this.lruCache.get(inMemoryKeyToString(x));
 
-                const mapInput: Required<CacheInputGet<Key, Output>> = {
+                const mapInput: Required<CacheInputGet<Key>> = {
                     key: x,
                     evictIfBeforeDate: input.evictIfBeforeDate,
                 };
@@ -68,7 +68,7 @@ export class InMemory<Key extends Record<string, string>, Output> implements ICa
         });
     }
 
-    async set(input: CacheInputSet<Key, Output>): Promise<Ok<Output>> {
+    async set(input: CacheInputSet<Key, Output>): Promise<Success<Output>> {
         this.lruCache.set(
             inMemoryKeyToString(input.entry.key),
             {
@@ -78,10 +78,10 @@ export class InMemory<Key extends Record<string, string>, Output> implements ICa
             { ttl: sanitizeTtl(input.ttlMs, this.options.defaultTtlMs) }
         );
 
-        return Promise.resolve({ kind: 'Ok', ok: input.entry.value });
+        return Promise.resolve({ kind: 'Success', value: input.entry.value });
     }
 
-    async setMany(input: CacheInputSetMany<Key, Output>): Promise<Ok<Output[]>> {
+    async setMany(input: CacheInputSetMany<Key, Output>): Promise<Success<Output[]>> {
         const setMany = input.entries.map((entry) => {
             // side effect in map
             this.lruCache.set(
@@ -97,20 +97,20 @@ export class InMemory<Key extends Record<string, string>, Output> implements ICa
         });
 
         return Promise.resolve({
-            kind: 'Ok',
-            ok: setMany,
+            kind: 'Success',
+            value: setMany,
         });
     }
 
-    async delete(input: CacheInputDelete<Key>): Promise<Ok<Key>> {
+    async delete(input: CacheInputDelete<Key>): Promise<Success<Key>> {
         this.lruCache.delete(inMemoryKeyToString(input.key));
-        return Promise.resolve({ kind: 'Ok', ok: input.key });
+        return Promise.resolve({ kind: 'Success', value: input.key });
     }
 
-    async deleteMany(input: CacheInputDeleteMany<Key>): Promise<Ok<Key[]>> {
+    async deleteMany(input: CacheInputDeleteMany<Key>): Promise<Success<Key[]>> {
         return Promise.resolve({
-            kind: 'Ok',
-            ok: input.keys.map((key) => {
+            kind: 'Success',
+            value: input.keys.map((key) => {
                 this.lruCache.delete(inMemoryKeyToString(key));
                 return key;
             }),

@@ -1,4 +1,4 @@
-import { HttpResponse, Ok, AuthError, BadRequestError, UnknownError, TimeoutError } from './types';
+import { HttpResponse, Success, AuthError, BadRequestError, UnknownError, TimeoutError } from './types';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import http from 'http';
 import https from 'https';
@@ -20,7 +20,7 @@ export class HttpClient {
     private mapResponse<T>(response: AxiosResponse<any, any>): HttpResponse<T> {
         if (response.status >= 200 && response.status < 300) {
             // should parse this with a validator...
-            return { kind: 'Ok', body: response.data as T };
+            return { kind: 'Success', value: response.data as T };
         } else if (response.status >= 300 && response.status < 400) {
             return { kind: 'Unknown' };
         } else if (response.status >= 400 && response.status < 500) {

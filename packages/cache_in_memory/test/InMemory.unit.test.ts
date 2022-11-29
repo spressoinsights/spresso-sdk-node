@@ -46,7 +46,7 @@ describe('Cache - InMemory', () => {
 
             const getResult1 = await cache.get({ key: testKey1 });
             expectCacheHit(getResult1);
-            expect(getResult1.ok.value).to.be.eq(inputSet.entries[1]?.value);
+            expect(getResult1.value.cachedValue).to.be.eq(inputSet.entries[1]?.value);
         });
     });
 

@@ -1,10 +1,10 @@
 export * from './models';
 
-export type HttpResponse<T> = Ok<T> | HttpResponseError;
+export type HttpResponse<T> = Success<T> | HttpResponseError;
 
-export type Ok<T> = {
-    kind: 'Ok';
-    body: T;
+export type Success<T> = {
+    kind: 'Success';
+    value: T;
 };
 
 export type HttpResponseError = AuthError | BadRequestError | UnknownError | TimeoutError;

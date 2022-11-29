@@ -21,18 +21,18 @@ export type GetPriceOptimizationsInput = {
     userAgent: string;
 };
 
-export type GetPriceOptimizationOutput = { kind: 'Ok'; ok: PriceOptimization } | TimeoutError | UnknownError;
+export type GetPriceOptimizationOutput = { kind: 'Success'; value: PriceOptimization } | TimeoutError | UnknownError;
 
-export type GetPriceOptimizationsOutput = { kind: 'Ok'; ok: PriceOptimization[] } | TimeoutError | UnknownError;
+export type GetPriceOptimizationsOutput = { kind: 'Success'; value: PriceOptimization[] } | TimeoutError | UnknownError;
 
 // API Output with potential Errors
 export type GetPriceOptimizationClientOutput =
-    | { kind: 'Ok'; ok: GetPriceOptimizationClientOutputData }
+    | { kind: 'Success'; value: GetPriceOptimizationClientOutputData }
     | TimeoutError
     | UnknownError;
 
 export type GetPriceOptimizationsClientOutput =
-    | { kind: 'Ok'; ok: GetPriceOptimizationsClientOutputData }
+    | { kind: 'Success'; value: GetPriceOptimizationsClientOutputData }
     | TimeoutError
     | UnknownError;
 

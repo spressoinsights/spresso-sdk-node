@@ -56,15 +56,15 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
 
                 // expect success
                 expectOk(setResult);
-                expect(JSON.stringify(setResult.ok)).to.be.eq(JSON.stringify(testValue0));
+                expect(JSON.stringify(setResult.value)).to.be.eq(JSON.stringify(testValue0));
 
-                const inputGet: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult = await cache.get(inputGet);
 
                 expectCacheHit(getResult);
 
-                expect(JSON.stringify(getResult.ok.value)).to.be.eq(JSON.stringify(testValue0));
-                assertFieldTypes(getResult.ok.value);
+                expect(JSON.stringify(getResult.value.cachedValue)).to.be.eq(JSON.stringify(testValue0));
+                assertFieldTypes(getResult.value.cachedValue);
             });
 
             it('successfully deletes', async () => {
@@ -82,13 +82,13 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
                 const setResult = await cache.set(inputSet);
 
                 expectOk(setResult);
-                expect(JSON.stringify(setResult.ok)).to.be.eq(JSON.stringify(testValue0));
+                expect(JSON.stringify(setResult.value)).to.be.eq(JSON.stringify(testValue0));
 
                 await cache.delete({
                     key: testKey0,
                 });
 
-                const inputGet: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult = await cache.get(inputGet);
 
                 expectCacheMiss(getResult);
@@ -108,7 +108,7 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
                 const setResult0 = await cache.set(inputSet0);
 
                 expectOk(setResult0);
-                expect(JSON.stringify(setResult0.ok)).to.be.eq(JSON.stringify(testValue0));
+                expect(JSON.stringify(setResult0.value)).to.be.eq(JSON.stringify(testValue0));
 
                 const inputSet1: CacheInputSet<TestKey, TestValue> = {
                     entry: {
@@ -121,15 +121,15 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
 
                 const setResult1 = await cache.set(inputSet1);
                 expectOk(setResult1);
-                expect(JSON.stringify(setResult1.ok)).to.be.eq(JSON.stringify(testValue1));
+                expect(JSON.stringify(setResult1.value)).to.be.eq(JSON.stringify(testValue1));
 
-                const inputGet: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult = await cache.get(inputGet);
 
                 expectCacheHit(getResult);
 
-                expect(JSON.stringify(getResult.ok.value)).to.be.eq(JSON.stringify(testValue1));
-                assertFieldTypes(getResult.ok.value);
+                expect(JSON.stringify(getResult.value.cachedValue)).to.be.eq(JSON.stringify(testValue1));
+                assertFieldTypes(getResult.value.cachedValue);
             });
 
             it('respects ttl', async () => {
@@ -177,23 +177,23 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
 
                 const setResult = await cache.setMany(inputSet);
                 expectOk(setResult);
-                expect(JSON.stringify(setResult.ok)).to.be.eq(JSON.stringify(entries.map((x) => x.value)));
+                expect(JSON.stringify(setResult.value)).to.be.eq(JSON.stringify(entries.map((x) => x.value)));
 
                 // Get Element 0
-                const inputGet0: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet0: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult0 = await cache.get(inputGet0);
 
                 expectCacheHit(getResult0);
-                assertFieldTypes(getResult0.ok.value);
-                expect(JSON.stringify(getResult0.ok.value)).to.be.eq(JSON.stringify(entries[0]?.value));
+                assertFieldTypes(getResult0.value.cachedValue);
+                expect(JSON.stringify(getResult0.value.cachedValue)).to.be.eq(JSON.stringify(entries[0]?.value));
 
                 // Get Element 1
-                const inputGet1: CacheInputGet<TestKey, TestValue> = { key: testKey1 };
+                const inputGet1: CacheInputGet<TestKey> = { key: testKey1 };
                 const getResult1 = await cache.get(inputGet1);
 
                 expectCacheHit(getResult1);
-                expect(JSON.stringify(getResult1.ok.value)).to.be.eq(JSON.stringify(entries[1]?.value));
-                assertFieldTypes(getResult1.ok.value);
+                expect(JSON.stringify(getResult1.value.cachedValue)).to.be.eq(JSON.stringify(entries[1]?.value));
+                assertFieldTypes(getResult1.value.cachedValue);
             });
 
             it('successfully deletes', async () => {
@@ -222,12 +222,12 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
                 expectOk(deleteMany);
 
                 // Get Element 0
-                const inputGet0: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet0: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult0 = await cache.get(inputGet0);
                 expectCacheMiss(getResult0);
 
                 // Get Element 1
-                const inputGet1: CacheInputGet<TestKey, TestValue> = { key: testKey1 };
+                const inputGet1: CacheInputGet<TestKey> = { key: testKey1 };
                 const getResult1 = await cache.get(inputGet1);
                 expectCacheMiss(getResult1);
             });
@@ -254,15 +254,15 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
 
                 const setResult = await cache.setMany(inputSet);
                 expectOk(setResult);
-                expect(JSON.stringify(setResult.ok)).to.be.eq(JSON.stringify(entries.map((x) => x.value)));
+                expect(JSON.stringify(setResult.value)).to.be.eq(JSON.stringify(entries.map((x) => x.value)));
 
                 // Get Element 0
-                const inputGet0: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGet0: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResult0 = await cache.get(inputGet0);
 
                 expectCacheHit(getResult0);
-                assertFieldTypes(getResult0.ok.value);
-                expect(JSON.stringify(getResult0.ok.value)).to.be.eq(JSON.stringify(entries[0]?.value));
+                assertFieldTypes(getResult0.value.cachedValue);
+                expect(JSON.stringify(getResult0.value.cachedValue)).to.be.eq(JSON.stringify(entries[0]?.value));
 
                 // Override
                 const entriesOverride = [
@@ -284,12 +284,14 @@ export function baseCacheTests(genCacheFunc: () => ICacheStrategy<TestKey, TestV
 
                 expectOk(await cache.setMany(inputSetOverride));
 
-                const inputGetOverride: CacheInputGet<TestKey, TestValue> = { key: testKey0 };
+                const inputGetOverride: CacheInputGet<TestKey> = { key: testKey0 };
                 const getResultOverride = await cache.get(inputGetOverride);
 
                 expectCacheHit(getResultOverride);
-                expect(JSON.stringify(getResultOverride.ok.value)).to.be.eq(JSON.stringify(entriesOverride[0]?.value));
-                assertFieldTypes(getResultOverride.ok.value);
+                expect(JSON.stringify(getResultOverride.value.cachedValue)).to.be.eq(
+                    JSON.stringify(entriesOverride[0]?.value)
+                );
+                assertFieldTypes(getResultOverride.value.cachedValue);
             });
 
             it('respects ttl', async () => {

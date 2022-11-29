@@ -13,9 +13,9 @@ import {
     FatalError,
     ICacheStrategy,
     mapGet,
-    Ok,
     parseCacheEntry,
     ParserInput,
+    Success,
 } from '@spresso-sdk/cache';
 import lodash from 'lodash';
 import { redisKeyToString } from './RedisUtils';
@@ -39,7 +39,7 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
     }
 
     private mapGetRedis(
-        input: Required<CacheInputGet<Key, Output>>,
+        input: Required<CacheInputGet<Key>>,
         item: string | null | undefined
     ): CacheHit<Output> | CacheMiss<Key> {
         const itemString: string | undefined = item == null || item == undefined ? undefined : item;
@@ -63,24 +63,22 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
     }
 
     // output parser input. can type check it as well.
-    async get(input: CacheInputGet<Key, Output>): Promise<Ok<CacheHit<Output> | CacheMiss<Key>> | FatalError> {
+    async get(input: CacheInputGet<Key>): Promise<Success<CacheHit<Output> | CacheMiss<Key>> | FatalError> {
         try {
             const item = await this.redisClient.get(redisKeyToString(input.key));
 
-            const mapInput: Required<CacheInputGet<Key, Output>> = {
+            const mapInput: Required<CacheInputGet<Key>> = {
                 key: input.key,
                 evictIfBeforeDate: input.evictIfBeforeDate,
             };
 
-            return { kind: 'Ok', ok: this.mapGetRedis(mapInput, item) };
+            return { kind: 'Success', value: this.mapGetRedis(mapInput, item) };
         } catch (error) {
             return { kind: 'FatalError', error: error };
         }
     }
 
-    async getMany(
-        input: CacheInputGetMany<Key, Output>
-    ): Promise<Ok<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError> {
+    async getMany(input: CacheInputGetMany<Key>): Promise<Success<(CacheHit<Output> | CacheMiss<Key>)[]> | FatalError> {
         try {
             const keys = input.keys.map((x) => redisKeyToString(x));
             const items = await this.redisClient.mGet(keys);
@@ -92,10 +90,10 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
             );
 
             return {
-                kind: 'Ok',
-                ok: zippedList.map((x) => {
-                    const cacheInput = x[1] as CacheInputGet<Key, Output>;
-                    const mapInput: Required<CacheInputGet<Key, Output>> = {
+                kind: 'Success',
+                value: zippedList.map((x) => {
+                    const cacheInput = x[1] as CacheInputGet<Key>;
+                    const mapInput: Required<CacheInputGet<Key>> = {
                         key: cacheInput.key,
                         evictIfBeforeDate: cacheInput.evictIfBeforeDate,
                     };
@@ -108,7 +106,7 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
         }
     }
 
-    async set(input: CacheInputSet<Key, Output>): Promise<Ok<Output> | FatalError> {
+    async set(input: CacheInputSet<Key, Output>): Promise<Success<Output> | FatalError> {
         try {
             const cacheEntryInput: CacheEntrySerialized = {
                 data: this.serializer(input.entry.value),
@@ -118,13 +116,13 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
             await this.redisClient.set(redisKeyToString(input.entry.key), JSON.stringify(cacheEntryInput), {
                 PX: input.ttlMs,
             });
-            return { kind: 'Ok', ok: input.entry.value };
+            return { kind: 'Success', value: input.entry.value };
         } catch (error) {
             return { kind: 'FatalError', error };
         }
     }
 
-    async setMany(input: CacheInputSetMany<Key, Output>): Promise<Ok<Output[]> | FatalError> {
+    async setMany(input: CacheInputSetMany<Key, Output>): Promise<Success<Output[]> | FatalError> {
         try {
             // Note: Multiple updates in one statement is not optimal. ie. mSet
             await Promise.all(
@@ -139,25 +137,25 @@ export class RedisCache<Key extends Record<string, string>, Output> implements I
                 })
             );
 
-            return { kind: 'Ok', ok: input.entries.map((x) => x.value) };
+            return { kind: 'Success', value: input.entries.map((x) => x.value) };
         } catch (error) {
             return { kind: 'FatalError', error };
         }
     }
 
-    async delete(input: CacheInputDelete<Key>): Promise<Ok<Key> | FatalError> {
+    async delete(input: CacheInputDelete<Key>): Promise<Success<Key> | FatalError> {
         try {
             await this.redisClient.del(redisKeyToString(input.key));
-            return { kind: 'Ok', ok: input.key };
+            return { kind: 'Success', value: input.key };
         } catch (error) {
             return { kind: 'FatalError', error };
         }
     }
 
-    async deleteMany(input: CacheInputDeleteMany<Key>): Promise<Ok<Key[]> | FatalError> {
+    async deleteMany(input: CacheInputDeleteMany<Key>): Promise<Success<Key[]> | FatalError> {
         try {
             await Promise.all(input.keys.map(async (i) => this.redisClient.del(redisKeyToString(i))));
-            return { kind: 'Ok', ok: input.keys };
+            return { kind: 'Success', value: input.keys };
         } catch (error) {
             return { kind: 'FatalError', error };
         }

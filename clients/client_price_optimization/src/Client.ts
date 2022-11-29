@@ -84,7 +84,7 @@ export class PriceOptimimizationClient {
         const handler = handleWhenResult((res) => {
             const typedRes = res as GetPriceOptimizationOutput;
             switch (typedRes.kind) {
-                case 'Ok':
+                case 'Success':
                     return false;
                 case 'TimeoutError':
                 case 'Unknown':
@@ -160,10 +160,10 @@ export class PriceOptimimizationClient {
         });
 
         switch (config.kind) {
-            case 'Ok':
-                switch (config.ok.kind) {
+            case 'Success':
+                switch (config.value.kind) {
                     case 'CacheHit':
-                        return config.ok.value;
+                        return config.value.cachedValue;
                     case 'CacheMiss': {
                         const apiResponse = await this.getOrgConfigFromApi();
 
@@ -196,8 +196,8 @@ export class PriceOptimimizationClient {
         });
 
         switch (getConfigOutput.kind) {
-            case 'Ok': {
-                return getConfigOutput.body.data;
+            case 'Success': {
+                return getConfigOutput.value.data;
             }
             // For any errors return the default object thats the same as the server
             case 'AuthError':
@@ -230,7 +230,7 @@ export class PriceOptimimizationClient {
                 };
             }
 
-            return res.ok;
+            return res.value;
         } catch (err) {
             return {
                 userId: input.userId,
@@ -247,8 +247,8 @@ export class PriceOptimimizationClient {
 
         if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklist)) {
             return {
-                kind: 'Ok',
-                ok: {
+                kind: 'Success',
+                value: {
                     userId: input.userId,
                     itemId: input.itemId,
                     price: input.defaultPrice,
@@ -277,17 +277,17 @@ export class PriceOptimimizationClient {
 
                 await this.cache
                     .set({
-                        entry: this.getCachePayload(input, result.ok),
-                        ttlMs: result.ok.ttlMs,
+                        entry: this.getCachePayload(input, result.value),
+                        ttlMs: result.value.ttlMs,
                         logicalDateAdded: await this.syncServerTime(), //[this.spressoServerTime(), dateFromConfig the last job run date].max()
                     })
                     .catch(); // dont error on not being able to cache ... need to add logging func as an input
                 return result;
             }
-            case 'Ok': {
-                switch (cachedItem.ok.kind) {
+            case 'Success': {
+                switch (cachedItem.value.kind) {
                     case 'CacheHit':
-                        return { kind: 'Ok', ok: cachedItem.ok.value };
+                        return { kind: 'Success', value: cachedItem.value.cachedValue };
                     case 'CacheMiss': {
                         const result = await this.getPriceOptimizationFromApi(input);
                         if (result.kind == 'TimeoutError' || result.kind == 'Unknown') {
@@ -296,12 +296,22 @@ export class PriceOptimimizationClient {
 
                         await this.cache
                             .set({
-                                entry: this.getCachePayload(input, result.ok),
-                                ttlMs: result.ok.ttlMs,
+                                entry: this.getCachePayload(input, result.value),
+                                ttlMs: result.value.ttlMs,
                                 logicalDateAdded: await this.syncServerTime(),
                             })
                             .catch(); // dont error on not being able to cache ... need to add logging func as an input
-                        return result;
+
+                        return {
+                            kind: 'Success',
+                            value: {
+                                userId: result.value.userId,
+                                itemId: result.value.itemId,
+                                price: result.value.price,
+                                deviceId: result.value.deviceId,
+                                isPriceOptimized: result.value.isPriceOptimized,
+                            },
+                        };
                     }
                 }
             }
@@ -326,19 +336,19 @@ export class PriceOptimimizationClient {
         });
 
         switch (getPriceOptimizationOutputClient.kind) {
-            case 'Ok':
+            case 'Success':
                 return {
-                    kind: 'Ok',
-                    ok: {
-                        ...getPriceOptimizationOutputClient.body.data,
-                        price: getPriceOptimizationOutputClient.body.data.price,
+                    kind: 'Success',
+                    value: {
+                        ...getPriceOptimizationOutputClient.value.data,
+                        price: getPriceOptimizationOutputClient.value.data.price,
                     },
                 };
             case 'AuthError':
             case 'BadRequest':
                 return {
-                    kind: 'Ok',
-                    ok: {
+                    kind: 'Success',
+                    value: {
                         ...input,
                         price: input.defaultPrice,
                         isPriceOptimized: false,
@@ -368,7 +378,7 @@ export class PriceOptimimizationClient {
                 }));
             }
 
-            return res.ok;
+            return res.value;
         } catch (err) {
             return input.items.map((x) => ({
                 userId: x.userId,
@@ -385,8 +395,8 @@ export class PriceOptimimizationClient {
 
         if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklist)) {
             return {
-                kind: 'Ok',
-                ok: input.items.map((x) => ({
+                kind: 'Success',
+                value: input.items.map((x) => ({
                     userId: x.userId,
                     itemId: x.itemId,
                     deviceId: x.deviceId,
@@ -408,7 +418,7 @@ export class PriceOptimimizationClient {
         switch (cachedItems.kind) {
             case 'FatalError':
                 return this.getPriceOptimizationsFromApi(input);
-            case 'Ok': {
+            case 'Success': {
                 // create map so we can get the inputs that didnt exist in the cache
                 const hashedInputs = input.items.map((x) => {
                     const obj = this.getCacheKey(x);
@@ -424,7 +434,7 @@ export class PriceOptimimizationClient {
                 const clientInputMap = new Map(hashedInputs);
 
                 const cacheMissesRequests = (
-                    cachedItems.ok.filter((x) => x.kind === 'CacheMiss') as CacheMiss<PriceOptimizationCacheKey>[]
+                    cachedItems.value.filter((x) => x.kind === 'CacheMiss') as CacheMiss<PriceOptimizationCacheKey>[]
                 ).map((x) => {
                     const obj = x.input;
 
@@ -445,7 +455,7 @@ export class PriceOptimimizationClient {
                 }
 
                 // Note: Api should always return the responses to mimic the ordering and count of the input list
-                const responsesWithInput = lodash.zip(input.items, apiResponses.ok).map((x) => ({
+                const responsesWithInput = lodash.zip(input.items, apiResponses.value).map((x) => ({
                     getPriceOptimizationInput: x[0] as Omit<GetPriceOptimizationInput, 'userAgent'>,
                     priceOptimization: x[1] as GetPriceOptimizationClientOutputData,
                 }));
@@ -478,11 +488,11 @@ export class PriceOptimimizationClient {
 
                 // Note: We do this to preserve order
                 return {
-                    kind: 'Ok',
-                    ok: cachedItems.ok.map((cacheOutput) => {
+                    kind: 'Success',
+                    value: cachedItems.value.map((cacheOutput) => {
                         switch (cacheOutput.kind) {
                             case 'CacheHit':
-                                return cacheOutput.value;
+                                return cacheOutput.cachedValue;
                             case 'CacheMiss': {
                                 const obj = cacheOutput.input;
                                 const key = JSON.stringify(
@@ -513,14 +523,14 @@ export class PriceOptimimizationClient {
         });
 
         switch (getPriceOptimizationsOutputClient.kind) {
-            case 'Ok': {
-                return { kind: 'Ok', ok: getPriceOptimizationsOutputClient.body.data };
+            case 'Success': {
+                return { kind: 'Success', value: getPriceOptimizationsOutputClient.value.data };
             }
             case 'AuthError':
             case 'BadRequest':
                 return {
-                    kind: 'Ok',
-                    ok: input.items.map((x) => ({
+                    kind: 'Success',
+                    value: input.items.map((x) => ({
                         ...x,
                         price: x.defaultPrice,
                         isPriceOptimized: false,

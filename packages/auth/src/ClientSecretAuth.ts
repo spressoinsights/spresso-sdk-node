@@ -41,10 +41,10 @@ export class ClientSecretAuth implements IAuth {
         const response = await this.getAccessTokenFromAuthApi();
 
         switch (response.kind) {
-            case 'Ok': {
+            case 'Success': {
                 // eslint-disable-next-line functional/immutable-data
                 this.localAccessToken = mapAuth0ToLocalAccessToken({
-                    auth0Response: response.body,
+                    auth0Response: response.value,
                     currentDate: new Date(),
                 });
 
