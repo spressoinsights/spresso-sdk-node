@@ -467,7 +467,16 @@ export class PriceOptimimizationClient {
                         obj,
                         Object.keys(obj).sort((a, b) => a.localeCompare(b))
                     );
-                    return [key, x.priceOptimization] as [string, PriceOptimization];
+
+                    const priceOptimization: PriceOptimization = {
+                        userId: x.priceOptimization.userId,
+                        itemId: x.priceOptimization.itemId,
+                        price: x.priceOptimization.price,
+                        deviceId: x.priceOptimization.deviceId,
+                        isPriceOptimized: x.priceOptimization.isPriceOptimized,
+                    };
+
+                    return [key, priceOptimization] as [string, PriceOptimization];
                 });
 
                 const apiResponseMap = new Map(apiResponseMapEntries);
@@ -476,8 +485,6 @@ export class PriceOptimimizationClient {
 
                 await Promise.all(
                     responsesWithInput.map(async (x) => {
-                        const payload = this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization);
-
                         await this.cache.set({
                             entry: this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization),
                             ttlMs: x.priceOptimization.ttlMs,
