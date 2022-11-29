@@ -29,8 +29,8 @@ describe('ClientSecretAuth', () => {
 
             const httpClientStub = sandbox.stub(httpClient, 'post').returns(
                 Promise.resolve({
-                    kind: 'Ok',
-                    body: validAuth0Response,
+                    kind: 'Success',
+                    value: validAuth0Response,
                 })
             );
 
@@ -61,8 +61,8 @@ describe('ClientSecretAuth', () => {
 
             const httpClientStub = sandbox.stub(httpClient, 'post').returns(
                 Promise.resolve({
-                    kind: 'Ok',
-                    body: validAuth0Response,
+                    kind: 'Success',
+                    value: validAuth0Response,
                 })
             );
 
