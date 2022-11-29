@@ -20,7 +20,7 @@ createTestNPMUser:
 patch: 
 	npm run patch
 localRemovePackage:
-	kubectl exec --i --t verdaccio -- rm -r /verdaccio/storage/data || true
+	kubectl exec -i -t verdaccio -- rm -r /verdaccio/storage/data || true
 localPublish: build createTestNPMUser localRemovePackage
 	npm run localPublish
 
