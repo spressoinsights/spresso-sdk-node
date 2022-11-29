@@ -1,9 +1,9 @@
-import { AuthError, BadRequestError, HttpResponse, Ok, TimeoutError, UnknownError } from '../../src/types';
+import { AuthError, BadRequestError, HttpResponse, Success, TimeoutError, UnknownError } from '../../src/types';
 
-type ExpectOk = <T>(response: HttpResponse<T>) => asserts response is Ok<T>;
-export const expectOk: ExpectOk = (response) => {
-    if (response.kind != 'Ok') {
-        throw new Error(`Expected Http Status to be Ok but found ${JSON.stringify(response)}.`);
+type ExpectSuccess = <T>(response: HttpResponse<T>) => asserts response is Success<T>;
+export const expectSuccess: ExpectSuccess = (response) => {
+    if (response.kind != 'Success') {
+        throw new Error(`Expected Http Status to be Success but found ${JSON.stringify(response)}.`);
     }
 };
 

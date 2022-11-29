@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { HttpClient } from '../src/HttpClient';
 import { HttpClientOptions } from '../src/types';
 import nock from 'nock';
-import { expectOk, expectAuthError, expectBadRequest, expectTimeout, expectUnknown } from './utils/Assert';
+import { expectSuccess, expectAuthError, expectBadRequest, expectTimeout, expectUnknown } from './utils/Assert';
 
 describe('HttpClient', () => {
     describe('GET', () => {
@@ -15,9 +15,9 @@ describe('HttpClient', () => {
 
             const res = await httpClient.get<{ data: { s: string } }>({ url: 'http://localhost/test' });
 
-            expectOk(res);
+            expectSuccess(res);
 
-            expect(res.body).to.deep.eq(payload);
+            expect(res.value).to.deep.eq(payload);
 
             scope.done();
         });
@@ -113,9 +113,9 @@ describe('HttpClient', () => {
                 body: { somePayload: 'Some Payload' },
             });
 
-            expectOk(res);
+            expectSuccess(res);
 
-            expect(res.body).to.deep.eq(payload);
+            expect(res.value).to.deep.eq(payload);
 
             scope.done();
         });
