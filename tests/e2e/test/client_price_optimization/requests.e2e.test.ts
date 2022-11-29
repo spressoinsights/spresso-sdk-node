@@ -20,8 +20,8 @@ async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0):
     const input: GetPriceOptimizationInput = {
         deviceId: 'somedeviceid',
         userId: 'abc',
-        itemId: 'SomeItemId',
-        defaultPrice: 3,
+        itemId: '000001',
+        defaultPrice: 11,
         userAgent: '',
         overrideToDefaultPrice: false,
     };
@@ -31,7 +31,7 @@ async function testFunctionalityVersion1(client: PriceOptimimizationClient_1_0):
     const output: PriceOptimization = {
         deviceId: input.deviceId,
         itemId: input.itemId,
-        isPriceOptimized: false,
+        isPriceOptimized: true,
         userId: input.userId,
         price: input.defaultPrice,
     };
