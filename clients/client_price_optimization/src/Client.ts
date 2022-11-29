@@ -329,7 +329,6 @@ export class PriceOptimimizationClient {
 
         switch (getPriceOptimizationOutputClient.kind) {
             case 'Ok':
-                // Note: We will be forcing all http calls to have fallbackprice in its payload ... this code will most likley become redundant
                 return {
                     kind: 'Ok',
                     ok: {

@@ -47,7 +47,7 @@ describe('Version 1.0', () => {
                 authenticator: new ClientSecretAuth_1_0(
                     new ClientSecretAuthOptions_1_0({
                         url: 'https://dev-369tg5rm.us.auth0.com/oauth/token/',
-                        clientId: 'foKGFuInp9llIfVIXWoa5M6fJvFZmM4E',
+                        clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                         clientSecret: clientSecretEnv,
                     })
                 ),
