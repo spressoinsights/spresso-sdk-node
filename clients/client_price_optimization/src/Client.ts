@@ -210,10 +210,8 @@ export class PriceOptimimizationClient {
         }
     }
 
-    //private allowUserAgent(userAgent: string, userAgentBlacklist: UserAgentBlacklistItem[]): boolean {
     private allowUserAgent(userAgent: string, userAgentBlacklist: UserAgentBlacklistItemInMemory[]): boolean {
-        //return !userAgentBlacklist.some((item) => item.regexp.test(userAgent));
-        return !userAgentBlacklist.some((item) => item.regexp);
+        return !userAgentBlacklist.some((item) => item.regexp.test(userAgent));
     }
 
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<PriceOptimization> {
