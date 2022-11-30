@@ -16,7 +16,7 @@ import {
     parseCacheEntry,
     ParserInput,
     Success,
-} from '@spresso-sdk/cache';
+} from '@spressoinsights/cache';
 import lodash from 'lodash';
 import { redisKeyToString } from './RedisUtils';
 import { RedisClient } from './types';

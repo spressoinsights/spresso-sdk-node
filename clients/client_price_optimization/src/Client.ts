@@ -1,5 +1,5 @@
-import { CacheMiss, defaultSerialization, ICacheStrategy, SpressoServerDate, SyncServerDate } from '@spresso-sdk/cache';
-import { HttpClientOrg } from '@spresso-sdk/http_client_org';
+import { CacheMiss, defaultSerialization, ICacheStrategy, SpressoServerDate, SyncServerDate } from '@spressoinsights/cache';
+import { HttpClientOrg } from '@spressoinsights/http_client_org';
 import {
     GetPriceOptimizationClientOutput,
     GetPriceOptimizationClientOutputData,
@@ -10,7 +10,7 @@ import {
     GetPriceOptimizationsInput,
     GetPriceOptimizationsOutput,
 } from './types/commands/GetPriceOptimization';
-import { InMemory } from '@spresso-sdk/cache_in_memory';
+import { InMemory } from '@spressoinsights/cache_in_memory';
 import lodash from 'lodash';
 
 import {
@@ -37,7 +37,7 @@ import {
     UserAgentBlacklistItemInMemory,
 } from './types/models/PriceOptimizationOrgConfig';
 import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
-import { HttpClientOptions } from '@spresso-sdk/http_client';
+import { HttpClientOptions } from '@spressoinsights/http_client';
 
 type ResiliencyPolicy = IMergedPolicy<
     ICancellationContext & IRetryContext & IDefaultPolicyContext,

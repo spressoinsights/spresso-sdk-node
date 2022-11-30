@@ -18,8 +18,8 @@
         "ts-node": "10.8.1"
     },
     "dependencies": {
-        "@spresso-sdk/price_optimization_1.0": "npm:@spresso-sdk/price_optimization@^1.0.0",
-        "@spresso-sdk/cache_in_memory_1.0": "npm:@spresso-sdk/cache_in_memory@^1.0.0",
-        "@spresso-sdk/auth_1.0": "npm:@spresso-sdk/auth@^1.0.0"
+        "@spressoinsights/price_optimization_1.0": "npm:@spressoinsights/price_optimization@^1.0.0",
+        "@spressoinsights/cache_in_memory_1.0": "npm:@spressoinsights/cache_in_memory@^1.0.0",
+        "@spressoinsights/auth_1.0": "npm:@spressoinsights/auth@^1.0.0"
     }
 }

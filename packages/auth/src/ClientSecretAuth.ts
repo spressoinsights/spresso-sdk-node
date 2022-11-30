@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientOptions, HttpResponse, HttpResponseError } from '@spresso-sdk/http_client';
+import { HttpClient, HttpClientOptions, HttpResponse, HttpResponseError } from '@spressoinsights/http_client';
 import { mapAuth0ToLocalAccessToken, shouldGetAccessToken } from './ClientSecretAuthUtils';
 import { IAuth } from './IAuth';
 import { ClientSecretAuthOptions } from './types/models';

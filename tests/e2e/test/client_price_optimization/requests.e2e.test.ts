@@ -4,12 +4,12 @@ import {
     PriceOptimimizationClient as PriceOptimimizationClient_1_0,
     PriceOptimization,
     PriceOptimizationClientOptions as PriceOptimizationClientOptions_1_0,
-} from '@spresso-sdk/price_optimization_1.0';
+} from '@spressoinsights/price_optimization_1.0';
 import {
     ClientSecretAuth as ClientSecretAuth_1_0,
     ClientSecretAuthOptions as ClientSecretAuthOptions_1_0,
-} from '@spresso-sdk/auth_1.0';
-import { InMemory } from '@spresso-sdk/cache_in_memory_1.0';
+} from '@spressoinsights/auth_1.0';
+import { InMemory } from '@spressoinsights/cache_in_memory_1.0';
 import { expect } from 'chai';
 import { assertString } from '../utils';
 

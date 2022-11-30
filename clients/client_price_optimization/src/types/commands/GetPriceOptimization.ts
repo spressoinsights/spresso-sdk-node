@@ -1,4 +1,4 @@
-import { TimeoutError, UnknownError } from '@spresso-sdk/http_client';
+import { TimeoutError, UnknownError } from '@spressoinsights/http_client';
 import { PriceOptimization } from '../models';
 
 export type GetPriceOptimizationInput = {

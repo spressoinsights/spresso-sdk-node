@@ -1,5 +1,5 @@
-import { HttpClient, HttpClientOptions, HttpResponse } from '@spresso-sdk/http_client';
-import { IAuth } from '@spresso-sdk/auth';
+import { HttpClient, HttpClientOptions, HttpResponse } from '@spressoinsights/http_client';
+import { IAuth } from '@spressoinsights/auth';
 
 export class HttpClientOrg {
     private readonly client: HttpClient;

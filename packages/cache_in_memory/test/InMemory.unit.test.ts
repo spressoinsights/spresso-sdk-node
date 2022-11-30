@@ -1,4 +1,4 @@
-import { CacheInputSetMany, SyncServerDate } from '@spresso-sdk/cache';
+import { CacheInputSetMany, SyncServerDate } from '@spressoinsights/cache';
 import { expect } from 'chai';
 import { InMemory } from './../src/InMemory';
 import { expectCacheHit, expectCacheMiss } from '../../cache/test/utils/Assert';

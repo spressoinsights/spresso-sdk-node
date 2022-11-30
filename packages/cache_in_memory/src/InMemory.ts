@@ -13,7 +13,7 @@ import {
     ParserInput,
     sanitizeTtl,
     Success,
-} from '@spresso-sdk/cache';
+} from '@spressoinsights/cache';
 
 import LRUCache from 'lru-cache';
 import { inMemoryKeyToString } from './InMemoryUtils';

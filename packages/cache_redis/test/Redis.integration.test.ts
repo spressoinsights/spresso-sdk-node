@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-setup-in-describe */
-import { defaultSerialization } from '@spresso-sdk/cache';
+import { defaultSerialization } from '@spressoinsights/cache';
 import { expect } from 'chai';
 import { baseCacheTests, TestKey, TestValue } from '../../cache/test/BaseCacheTests';
 import { createClient } from 'redis4';

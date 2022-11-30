@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Auth0Response, ClientSecretAuthOptions } from '../src/types/models';
 import { ClientSecretAuth } from '../src/ClientSecretAuth';
 import sinon from 'sinon';
-import { HttpClient, HttpClientOptions } from '@spresso-sdk/http_client';
+import { HttpClient, HttpClientOptions } from '@spressoinsights/http_client';
 import { mapAuth0ToLocalAccessToken, shouldGetAccessToken } from '../src/ClientSecretAuthUtils';
 import { LocalAccessToken } from '../src/types/models/LocalAccessToken';
 

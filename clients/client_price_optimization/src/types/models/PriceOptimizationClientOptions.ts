@@ -1,5 +1,5 @@
-import { IAuth } from '@spresso-sdk/auth';
-import { ICacheStrategy } from '@spresso-sdk/cache';
+import { IAuth } from '@spressoinsights/auth';
+import { ICacheStrategy } from '@spressoinsights/cache';
 import { PriceOptimization } from './PriceOptimization';
 import { PriceOptimizationCacheKey } from './PriceOptimizationCacheKey';
 

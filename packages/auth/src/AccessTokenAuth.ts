@@ -1,4 +1,4 @@
-import { HttpResponseError } from '@spresso-sdk/http_client';
+import { HttpResponseError } from '@spressoinsights/http_client';
 import { IAuth } from './IAuth';
 
 export class Authenticator implements IAuth {
