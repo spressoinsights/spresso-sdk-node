@@ -21,6 +21,6 @@ jobs:
           npm ci
           nix-shell --command "make -f ./commands.nixwrap build"
       - name: Publish to NPM
-        run: npm publish --access public
+        run: lerna publish from-package --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
