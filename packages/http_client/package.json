@@ -35,5 +35,8 @@
         "type": "git",
         "url": "",
         "directory": ""
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
