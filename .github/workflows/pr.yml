@@ -1,6 +1,9 @@
 name: CI
 on:
     - pull_request
+    push:
+      branches:
+        - 'development'
 jobs:
     e2eTesting:
         runs-on: ubuntu-latest
