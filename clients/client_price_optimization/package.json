@@ -1,0 +1,40 @@
+{
+    "name": "@spressoinsights/price_optimization",
+    "version": "1.0.1",
+    "main": "./dist-cjs/index.js",
+    "module": "./dist-es/index.js",
+    "types": "./dist-types/index.d.ts",
+    "scripts": {
+        "build": "concurrently 'npm run build:cjs' 'npm run build:es' 'npm run build:types' 'npm run lint'",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:es": "tsc -p tsconfig.es.json",
+        "build:types": "tsc -p tsconfig.types.json",
+        "lint": "cd ../../ && npx eslint ./clients/client_price_optimization"
+    },
+    "author": {
+        "name": "Spresso SDK for Node Team"
+    },
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@spressoinsights/cache": "^1.0.1",
+        "@spressoinsights/cache_in_memory": "^1.0.1",
+        "@spressoinsights/http_client_org": "^1.0.1",
+        "cockatiel": "3.0.0",
+        "tslib": "^2.3.1"
+    },
+    "devDependencies": {
+        "concurrently": "7.0.0"
+    },
+    "engines": {
+        "node": ">= 12.0.0"
+    },
+    "files": [
+        "dist-*"
+    ],
+    "homepage": "",
+    "repository": {
+        "type": "git",
+        "url": "",
+        "directory": ""
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "name": "spresso-sdk-e2e",
+    "private": true,
+    "version": "1.0.0",
+    "description": "End to End testing for Spresso-SDK.",
+    "main": "index.js",
+    "scripts": {
+        "installFromLocalRegistry": "npm install --registry http://localhost:4873"
+    },
+    "devDependencies": {
+        "@types/chai": "4.3.3",
+        "@types/mocha": "10.0.0",
+        "@types/sinon": "10.0.13",
+        "chai": "4.3.6",
+        "mocha": "10.0.0",
+        "sinon": "14.0.1",
+        "typescript": "4.7.2",
+        "ts-node": "10.8.1"
+    },
+    "dependencies": {
+        "@spressoinsights/price_optimization_1.0": "npm:@spressoinsights/price_optimization@^1.0.0",
+        "@spressoinsights/cache_in_memory_1.0": "npm:@spressoinsights/cache_in_memory@^1.0.0",
+        "@spressoinsights/auth_1.0": "npm:@spressoinsights/auth@^1.0.0"
+    }
+}

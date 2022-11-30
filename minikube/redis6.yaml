@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: redis6
+spec:
+    containers:
+        - name: redis6
+          image: redis:6
+          command: ['redis-server']
+          args: ['--port 9006']
+          resources:
+              limits:
+                  memory: 1024Mi
+                  cpu: 400m
+              requests:
+                  memory: 1024Mi
+                  cpu: 400m
+          ports:
+              - containerPort: 9006

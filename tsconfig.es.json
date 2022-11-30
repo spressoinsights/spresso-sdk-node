@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "importHelpers": true,
+        "module": "esnext",
+        "noEmitHelpers": true,
+        "target": "ES2018",
+        "strict": true
+    }
+}

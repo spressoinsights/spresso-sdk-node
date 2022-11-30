@@ -1,0 +1,5 @@
+.eslintrc.js
+deploy/*
+**/dist-cjs/*
+**/dist-es/*
+**/dist-types/*
