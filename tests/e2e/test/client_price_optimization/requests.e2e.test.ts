@@ -87,9 +87,9 @@ describe('Version 1.0', () => {
     });
 
     it('Can successfully getPriceOptimizations', async () => {
-        const options = new PriceOptimizationClientOptions_1_0({
-            authenticator: new ClientSecretAuth_1_0(
-                new ClientSecretAuthOptions_1_0({
+        const options = new PriceOptimizationClientOptions_Initial_Dev({
+            authenticator: new ClientSecretAuth_Initial_Dev(
+                new ClientSecretAuthOptions_Initial_Dev({
                     url: 'https://dev-369tg5rm.us.auth0.com/oauth/token/',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
