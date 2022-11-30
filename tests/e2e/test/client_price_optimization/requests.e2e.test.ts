@@ -1,22 +1,22 @@
 import {
     GetPriceOptimizationInput,
     GetPriceOptimizationsInput,
-    PriceOptimimizationClient as PriceOptimimizationClient_1_0,
+    PriceOptimimizationClient as PriceOptimimizationClient_Initial_Dev,
     PriceOptimization,
-    PriceOptimizationClientOptions as PriceOptimizationClientOptions_1_0,
-} from '@spressoinsights/price_optimization_1.0';
+    PriceOptimizationClientOptions as PriceOptimizationClientOptions_Initial_Dev,
+} from '@spressoinsights/price_optimization_initial_dev';
 import {
-    ClientSecretAuth as ClientSecretAuth_1_0,
-    ClientSecretAuthOptions as ClientSecretAuthOptions_1_0,
-} from '@spressoinsights/auth_1.0';
-import { InMemory } from '@spressoinsights/cache_in_memory_1.0';
+    ClientSecretAuth as ClientSecretAuth_Initial_Dev,
+    ClientSecretAuthOptions as ClientSecretAuthOptions_Initial_Dev,
+} from '@spressoinsights/auth_initial_dev';
+import { InMemory } from '@spressoinsights/cache_in_memory_initial_dev';
 import { expect } from 'chai';
 import { assertString } from '../utils';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 assertString(clientSecretEnv);
 
-async function testGetPriceOptimization(client: PriceOptimimizationClient_1_0): Promise<void> {
+async function testGetPriceOptimization(client: PriceOptimimizationClient_Initial_Dev): Promise<void> {
     const input: GetPriceOptimizationInput = {
         deviceId: 'somedeviceid',
         userId: 'SomeUserId',
@@ -39,7 +39,7 @@ async function testGetPriceOptimization(client: PriceOptimimizationClient_1_0): 
     expect(output).to.include(res);
 }
 
-async function testGetPriceOptimizations(client: PriceOptimimizationClient_1_0): Promise<void> {
+async function testGetPriceOptimizations(client: PriceOptimimizationClient_Initial_Dev): Promise<void> {
     const input: GetPriceOptimizationsInput = {
         userAgent: '',
         items: [
@@ -70,9 +70,9 @@ async function testGetPriceOptimizations(client: PriceOptimimizationClient_1_0):
 
 describe('Version 1.0', () => {
     it('Can successfully getPriceOptimization', async () => {
-        const options = new PriceOptimizationClientOptions_1_0({
-            authenticator: new ClientSecretAuth_1_0(
-                new ClientSecretAuthOptions_1_0({
+        const options = new PriceOptimizationClientOptions_Initial_Dev({
+            authenticator: new ClientSecretAuth_Initial_Dev(
+                new ClientSecretAuthOptions_Initial_Dev({
                     url: 'https://dev-369tg5rm.us.auth0.com/oauth/token/',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
@@ -81,7 +81,7 @@ describe('Version 1.0', () => {
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
         });
 
-        const client = new PriceOptimimizationClient_1_0(options);
+        const client = new PriceOptimimizationClient_Initial_Dev(options);
 
         await testGetPriceOptimization(client);
     });
@@ -98,7 +98,7 @@ describe('Version 1.0', () => {
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
         });
 
-        const client = new PriceOptimimizationClient_1_0(options);
+        const client = new PriceOptimimizationClient_Initial_Dev(options);
 
         await testGetPriceOptimizations(client);
     });
