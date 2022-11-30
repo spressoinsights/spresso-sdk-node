@@ -26,3 +26,5 @@ This is a rough draft.
 
 You can install packages in another local repo by using something like "npm install @spressoinsights/price_optimization --registry http://localhost:4873"
   
+* Tag Release
+ npx lerna version *version*
