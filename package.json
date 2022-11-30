@@ -1,5 +1,5 @@
 {
-    "name": "spresso-sdk-node",
+    "name": "@spressoinsights/spresso_sdk_node",
     "description": "Spresso SDK for Node",
     "sideEffects": false,
     "private": true,

@@ -1,5 +1,5 @@
 {
-    "name": "@spresso-sdk/auth",
+    "name": "@spressoinsights/auth",
     "version": "1.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",

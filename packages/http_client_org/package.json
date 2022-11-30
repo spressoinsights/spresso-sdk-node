@@ -1,5 +1,5 @@
 {
-    "name": "@spresso-sdk/http_client_org",
+    "name": "@spressoinsights/http_client_org",
     "version": "1.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
