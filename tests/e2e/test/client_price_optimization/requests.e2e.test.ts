@@ -14,7 +14,6 @@ import { expect } from 'chai';
 import { assertString } from '../utils';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 assertString(clientSecretEnv);
 
 async function testGetPriceOptimization(client: PriceOptimimizationClient_1_0): Promise<void> {
@@ -82,7 +81,6 @@ describe('Version 1.0', () => {
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
         });
 
-        // So here is why we might want another repo for e2e. We can have these as secrets in github actions as an alternative but it will be a pain to manage for local dev. Stil worth doing tho.
         const client = new PriceOptimimizationClient_1_0(options);
 
         await testGetPriceOptimization(client);
@@ -100,7 +98,6 @@ describe('Version 1.0', () => {
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
         });
 
-        // So here is why we might want another repo for e2e. We can have these as secrets in github actions as an alternative but it will be a pain to manage for local dev. Stil worth doing tho.
         const client = new PriceOptimimizationClient_1_0(options);
 
         await testGetPriceOptimizations(client);
