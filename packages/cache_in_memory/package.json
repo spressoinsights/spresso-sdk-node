@@ -1,6 +1,6 @@
 {
     "name": "@spressoinsights/cache_in_memory",
-    "version": "0.0.2",
+    "version": "0.0.1",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -17,7 +17,7 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spressoinsights/cache": "^0.0.2",
+        "@spressoinsights/cache": "^0.0.1",
         "lru-cache": "7.14.0"
     },
     "devDependencies": {
