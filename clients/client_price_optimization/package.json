@@ -16,9 +16,9 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spresso-sdk/cache": "^1.0.1",
-        "@spresso-sdk/cache_in_memory": "^1.0.1",
-        "@spresso-sdk/http_client_org": "^1.0.1",
+        "@spressoinsights/cache": "^1.0.1",
+        "@spressoinsights/cache_in_memory": "^1.0.1",
+        "@spressoinsights/http_client_org": "^1.0.1",
         "cockatiel": "3.0.0",
         "tslib": "^2.3.1"
     },

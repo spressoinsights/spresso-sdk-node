@@ -23,5 +23,6 @@ This is a rough draft.
    First you will need to run "npm run createTestNPMUser" to create a test user for the proxy server. 
    You can then run "npm run localPublish" to publish to your local proxy. You can verify its contents by visiting localhost:4873
 ** Use
-   You can install packages in another local repo by using something like "npm install @spresso-sdk/price_optimization --registry http://localhost:4873"
+
+You can install packages in another local repo by using something like "npm install @spressoinsights/price_optimization --registry http://localhost:4873"
   

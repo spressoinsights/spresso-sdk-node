@@ -1,7 +1,7 @@
 install:
 	npm install
 removeSpressoModules:
-	cd tests/e2e && rm -r ./node_modules/@spresso-sdk || true
+	cd tests/e2e && rm -r ./node_modules/@spressoinsights || true
 installForE2ETesting: removeSpressoModules
 	cd tests/e2e && npm run installFromLocalRegistry
 unitTesting:
