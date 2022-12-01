@@ -19,7 +19,7 @@
         "@spressoinsights/cache": "^0.0.3",
         "@spressoinsights/cache_in_memory": "^0.0.3",
         "@spressoinsights/http_client_org": "^0.0.3",
-        "cockatiel": "3.0.0",
+        "cockatiel": "3.0.0-anyengine.0",
         "tslib": "^2.3.1"
     },
     "devDependencies": {
