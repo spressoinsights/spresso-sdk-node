@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.6](/compare/v0.0.5...v0.0.6) (2022-12-02)
+
+**Note:** Version bump only for package @spressoinsights/cache_redis
+
 ## [0.0.5](/compare/v0.0.4...v0.0.5) (2022-12-01)
 
 ### Bug Fixes

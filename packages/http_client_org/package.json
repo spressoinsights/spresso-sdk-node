@@ -1,6 +1,6 @@
 {
     "name": "@spressoinsights/http_client_org",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -16,8 +16,8 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spressoinsights/auth": "^0.0.5",
-        "@spressoinsights/http_client": "^0.0.5",
+        "@spressoinsights/auth": "^0.0.6",
+        "@spressoinsights/http_client": "^0.0.6",
         "tslib": "^2.4.1"
     },
     "devDependencies": {
