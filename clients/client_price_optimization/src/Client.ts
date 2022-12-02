@@ -1,4 +1,10 @@
-import { CacheMiss, defaultSerialization, ICacheStrategy, SpressoServerDate, SyncServerDate } from '@spressoinsights/cache';
+import {
+    CacheMiss,
+    defaultSerialization,
+    ICacheStrategy,
+    SpressoServerDate,
+    SyncServerDate,
+} from '@spressoinsights/cache';
 import { HttpClientOrg } from '@spressoinsights/http_client_org';
 import {
     GetPriceOptimizationClientOutput,
@@ -16,19 +22,11 @@ import lodash from 'lodash';
 import {
     ConsecutiveBreaker,
     ExponentialBackoff,
-    retry,
-    circuitBreaker,
-    wrap,
-    handleWhenResult,
-    IMergedPolicy,
     IRetryContext,
-    IDefaultPolicyContext,
-    RetryPolicy,
-    CircuitBreakerPolicy,
-    timeout,
     TimeoutStrategy,
-    TimeoutPolicy,
     ICancellationContext,
+    Policy,
+    IPolicy,
 } from 'cockatiel';
 import {
     defaultUserAgentBlacklist,
@@ -39,11 +37,14 @@ import {
 import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
 import { HttpClientOptions } from '@spressoinsights/http_client';
 
-type ResiliencyPolicy = IMergedPolicy<
-    ICancellationContext & IRetryContext & IDefaultPolicyContext,
-    never,
-    [TimeoutPolicy, RetryPolicy, CircuitBreakerPolicy]
->;
+// V3
+// type ResiliencyPolicy = IMergedPolicy<
+//     ICancellationContext & IRetryContext & IDefaultPolicyContext,
+//     never,
+//     [TimeoutPolicy, RetryPolicy, CircuitBreakerPolicy]
+// >;
+// V2
+type ResiliencyPolicy = IPolicy<ICancellationContext & IRetryContext, never>;
 
 export class PriceOptimimizationClient {
     private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
@@ -81,7 +82,7 @@ export class PriceOptimimizationClient {
     }
 
     private resiliencyPolicy(): ResiliencyPolicy {
-        const handler = handleWhenResult((res) => {
+        const handler = Policy.handleWhenResult((res) => {
             const typedRes = res as GetPriceOptimizationOutput;
             switch (typedRes.kind) {
                 case 'Success':
@@ -94,24 +95,38 @@ export class PriceOptimimizationClient {
 
         // Create a retry policy that'll try whatever function we execute 3
         // times with a randomized exponential backoff.
-        const retryFunc = retry(handler, {
-            maxAttempts: this.options.resiliencyPolicy.numberOfRetries,
-            backoff: new ExponentialBackoff(),
-        });
+
+        // V3
+        // const retryFunc = Policy.retry(handler, {
+        //     maxAttempts: this.options.resiliencyPolicy.numberOfRetries,
+        //     backoff: new ExponentialBackoff(),
+        // });
+        // V2
+        const retryFunc = handler
+            .retry()
+            .attempts(this.options.resiliencyPolicy.numberOfRetries)
+            .backoff(new ExponentialBackoff());
 
         // Create a circuit breaker that'll stop calling the executed function for {circuitBreakerBreakDurationMs}
         // seconds if it fails {numberOfFailuresBeforeTrippingCircuitBreaker} times in a row.
         // This can give time for e.g. a database to recover without getting tons of traffic.
-        const circuitBreakerFunc = circuitBreaker(handler, {
-            halfOpenAfter: this.options.resiliencyPolicy.circuitBreakerBreakDurationMs,
-            breaker: new ConsecutiveBreaker(this.options.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker),
-        });
+        // V3
+        // const circuitBreakerFunc = circuitBreaker(handler, {
+        //     halfOpenAfter: this.options.resiliencyPolicy.circuitBreakerBreakDurationMs,
+        //     breaker: new ConsecutiveBreaker(this.options.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker),
+        // });
+        // V2
+        const circuitBreakerFunc = handler.circuitBreaker(
+            this.options.resiliencyPolicy.circuitBreakerBreakDurationMs,
+            new ConsecutiveBreaker(this.options.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker)
+        );
 
         // timeout the whole request
-        //const timeoutPolicy = timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Cooperative);
-        const timeoutPolicy = timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Aggressive);
+        //const timeoutPolicy = timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Aggressive);
 
-        const resiliency = wrap(retryFunc, circuitBreakerFunc, timeoutPolicy);
+        const timeoutPolicy = Policy.timeout(this.options.resiliencyPolicy.timeoutMs, TimeoutStrategy.Aggressive);
+
+        const resiliency = Policy.wrap(retryFunc, circuitBreakerFunc, timeoutPolicy);
 
         return resiliency;
     }
