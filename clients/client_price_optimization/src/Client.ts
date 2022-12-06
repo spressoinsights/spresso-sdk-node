@@ -530,13 +530,15 @@ export class PriceOptimimizationClient {
     ): ApiInputWithResponse[] {
         // Note: Api should always return the responses to mimic the ordering and count of the input list
         return lodash
-            .zip(input.items, apiResponses.value)
+            .chain(input.items)
+            .zip(apiResponses.value)
             .map((x) => ({
                 getPriceOptimizationInput: x[0] as Omit<GetPriceOptimizationInput, 'userAgent'>,
                 priceOptimization: x[1] as GetPriceOptimizationClientOutputData,
                 // Note: Filter here ensures we only are dealing with entries we made calls for.
             }))
-            .filter((x) => x.priceOptimization != undefined);
+            .filter((x) => x.priceOptimization != undefined)
+            .value();
     }
 
     private _generateApiResponseMap(apiInputWithResponse: ApiInputWithResponse[]): Map<string, PriceOptimization> {
@@ -565,7 +567,7 @@ export class PriceOptimimizationClient {
     private async getPriceOptimizationsFromApi(
         input: GetPriceOptimizationsInput
     ): Promise<GetPriceOptimizationsClientOutput> {
-        if (lodash.isEmpty(input.items.length)) {
+        if (lodash.isEmpty(input.items)) {
             return {
                 kind: 'Success',
                 value: [],
