@@ -35,7 +35,7 @@ import {
     UserAgentBlacklistItemInMemory,
 } from './types/models/PriceOptimizationOrgConfig';
 import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
-import { HttpClientOptions } from '@spressoinsights/http_client';
+import { HttpClientOptions, Success } from '@spressoinsights/http_client';
 
 // V3
 // type ResiliencyPolicy = IMergedPolicy<
@@ -45,6 +45,11 @@ import { HttpClientOptions } from '@spressoinsights/http_client';
 // >;
 // V2
 type ResiliencyPolicy = IPolicy<ICancellationContext & IRetryContext, never>;
+
+type ApiInputWithResponse = {
+    getPriceOptimizationInput: Omit<GetPriceOptimizationInput, 'userAgent'>;
+    priceOptimization: GetPriceOptimizationClientOutputData;
+};
 
 export class PriceOptimimizationClient {
     private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
@@ -297,13 +302,15 @@ export class PriceOptimimizationClient {
                     return result;
                 }
 
-                await this.cache
-                    .set({
-                        entry: this.getCachePayload(input, result.value),
-                        ttlMs: result.value.ttlMs,
-                        logicalDateAdded: await this.syncServerTime(), //[this.spressoServerTime(), dateFromConfig the last job run date].max()
-                    })
-                    .catch(); // dont error on not being able to cache ... need to add logging func as an input
+                const cacheRes = await this.cache.set({
+                    entry: this.getCachePayload(input, result.value),
+                    ttlMs: result.value.ttlMs,
+                    logicalDateAdded: await this.syncServerTime(), //[this.spressoServerTime(), dateFromConfig the last job run date].max()
+                });
+
+                if (cacheRes.kind == 'FatalError') {
+                    console.log(`Unable to cache input: ${JSON.stringify(input)}`);
+                }
                 return result;
             }
             case 'Success': {
@@ -467,54 +474,33 @@ export class PriceOptimimizationClient {
                     return clientInputMap.get(key) as GetPriceOptimizationInput; // this should always resolve
                 });
 
-                const apiResponses = await this.getPriceOptimizationsFromApi({
+                const apiResponsesOrError = await this.getPriceOptimizationsFromApi({
                     items: cacheMissesRequests,
                     userAgent: input.userAgent,
                 });
 
-                if (apiResponses.kind == 'TimeoutError' || apiResponses.kind == 'Unknown') {
-                    return apiResponses;
+                if (apiResponsesOrError.kind == 'TimeoutError' || apiResponsesOrError.kind == 'Unknown') {
+                    return apiResponsesOrError;
                 }
 
-                // Note: Api should always return the responses to mimic the ordering and count of the input list
-                const responsesWithInput = lodash.zip(input.items, apiResponses.value).map((x) => ({
-                    getPriceOptimizationInput: x[0] as Omit<GetPriceOptimizationInput, 'userAgent'>,
-                    priceOptimization: x[1] as GetPriceOptimizationClientOutputData,
-                }));
-
-                const apiResponseMapEntries = responsesWithInput.map((x) => {
-                    const obj = this.getCacheKey(x.getPriceOptimizationInput);
-
-                    const key = JSON.stringify(
-                        obj,
-                        Object.keys(obj).sort((a, b) => a.localeCompare(b))
-                    );
-
-                    const priceOptimization: PriceOptimization = {
-                        userId: x.priceOptimization.userId,
-                        itemId: x.priceOptimization.itemId,
-                        price: x.priceOptimization.price,
-                        deviceId: x.priceOptimization.deviceId,
-                        isPriceOptimized: x.priceOptimization.isPriceOptimized,
-                    };
-
-                    return [key, priceOptimization] as [string, PriceOptimization];
-                });
-
-                const apiResponseMap = new Map(apiResponseMapEntries);
+                const responsesWithInput = this._zipApiInputsWithResponses(input, apiResponsesOrError);
+                const apiResponseMap = this._generateApiResponseMap(responsesWithInput);
 
                 const serverTime = await this.syncServerTime();
 
                 await Promise.all(
                     responsesWithInput.map(async (x) => {
-                        console.log(x);
-                        await this.cache.set({
+                        const result = await this.cache.set({
                             entry: this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization),
                             ttlMs: x.priceOptimization.ttlMs,
                             logicalDateAdded: serverTime,
                         });
+
+                        if (result.kind == 'FatalError') {
+                            console.log(`Unable to cache inut: ${JSON.stringify(x.getPriceOptimizationInput)}`);
+                        }
                     })
-                ).catch();
+                );
 
                 // Note: We do this to preserve order
                 return {
@@ -538,9 +524,54 @@ export class PriceOptimimizationClient {
         }
     }
 
+    private _zipApiInputsWithResponses(
+        input: GetPriceOptimizationsInput,
+        apiResponses: Success<GetPriceOptimizationsClientOutputData>
+    ): ApiInputWithResponse[] {
+        // Note: Api should always return the responses to mimic the ordering and count of the input list
+        return lodash
+            .zip(input.items, apiResponses.value)
+            .map((x) => ({
+                getPriceOptimizationInput: x[0] as Omit<GetPriceOptimizationInput, 'userAgent'>,
+                priceOptimization: x[1] as GetPriceOptimizationClientOutputData,
+                // Note: Filter here ensures we only are dealing with entries we made calls for.
+            }))
+            .filter((x) => x.priceOptimization != undefined);
+    }
+
+    private _generateApiResponseMap(apiInputWithResponse: ApiInputWithResponse[]): Map<string, PriceOptimization> {
+        const apiResponseMapEntries = apiInputWithResponse.map((x) => {
+            const obj = this.getCacheKey(x.getPriceOptimizationInput);
+
+            const key = JSON.stringify(
+                obj,
+                Object.keys(obj).sort((a, b) => a.localeCompare(b))
+            );
+
+            const priceOptimization: PriceOptimization = {
+                userId: x.priceOptimization.userId,
+                itemId: x.priceOptimization.itemId,
+                price: x.priceOptimization.price,
+                deviceId: x.priceOptimization.deviceId,
+                isPriceOptimized: x.priceOptimization.isPriceOptimized,
+            };
+
+            return [key, priceOptimization] as [string, PriceOptimization];
+        });
+
+        return new Map(apiResponseMapEntries);
+    }
+
     private async getPriceOptimizationsFromApi(
         input: GetPriceOptimizationsInput
     ): Promise<GetPriceOptimizationsClientOutput> {
+        if (lodash.isEmpty(input.items.length)) {
+            return {
+                kind: 'Success',
+                value: [],
+            };
+        }
+
         const url = `${this.baseUrl}/priceOptimizations`;
 
         const getPriceOptimizationsOutputClient = await this.httpClient.post<{
