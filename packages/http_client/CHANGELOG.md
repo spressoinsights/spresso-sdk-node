@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.8](/compare/v0.0.7...v0.0.8) (2022-12-06)
+
+**Note:** Version bump only for package @spressoinsights/http_client
+
 ## [0.0.7](/compare/v0.0.6...v0.0.7) (2022-12-02)
 
 **Note:** Version bump only for package @spressoinsights/http_client
