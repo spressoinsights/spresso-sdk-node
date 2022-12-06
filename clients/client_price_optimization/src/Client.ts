@@ -507,6 +507,7 @@ export class PriceOptimimizationClient {
 
                 await Promise.all(
                     responsesWithInput.map(async (x) => {
+                        console.log(x);
                         await this.cache.set({
                             entry: this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization),
                             ttlMs: x.priceOptimization.ttlMs,
