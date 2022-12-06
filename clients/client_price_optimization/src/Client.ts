@@ -149,7 +149,14 @@ export class PriceOptimimizationClient {
     } {
         return {
             key: this.getCacheKey(apiInput),
-            value: apiResponse,
+            // Note: we need to do this to shake off any values that should only exist in the api response ie. ttlms
+            value: {
+                deviceId: apiResponse.deviceId,
+                userId: apiResponse.userId,
+                itemId: apiResponse.itemId,
+                price: apiResponse.price,
+                isPriceOptimized: apiResponse.isPriceOptimized,
+            },
         };
     }
 

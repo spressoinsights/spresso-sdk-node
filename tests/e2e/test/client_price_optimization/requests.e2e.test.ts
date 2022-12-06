@@ -68,7 +68,7 @@ async function testGetPriceOptimizations(client: PriceOptimimizationClient_Initi
     expect(output).to.deep.equal(res);
 }
 
-describe('Version 1.0', () => {
+describe('Version Initial_Dev', () => {
     it('Can successfully getPriceOptimization', async () => {
         const options = new PriceOptimizationClientOptions_Initial_Dev({
             authenticator: new ClientSecretAuth_Initial_Dev(
