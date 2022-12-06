@@ -84,6 +84,8 @@ describe('Version 1.0', () => {
         const client = new PriceOptimimizationClient_Initial_Dev(options);
 
         await testGetPriceOptimization(client);
+        // to make sure caching works
+        await testGetPriceOptimization(client);
     });
 
     it('Can successfully getPriceOptimizations', async () => {
@@ -100,6 +102,8 @@ describe('Version 1.0', () => {
 
         const client = new PriceOptimimizationClient_Initial_Dev(options);
 
+        await testGetPriceOptimizations(client);
+        // to make sure caching works
         await testGetPriceOptimizations(client);
     });
 });
