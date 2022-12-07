@@ -1,6 +1,6 @@
 {
     "name": "@spressoinsights/cache_redis",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -17,7 +17,7 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spressoinsights/cache": "^0.0.9",
+        "@spressoinsights/cache": "^0.0.10",
         "@types/lodash": "4.14.186",
         "lodash": "4.17.21",
         "tslib": "^2.4.1"

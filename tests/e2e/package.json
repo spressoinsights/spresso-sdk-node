@@ -14,12 +14,13 @@
         "chai": "4.3.6",
         "mocha": "10.0.0",
         "sinon": "14.0.1",
-        "typescript": "4.7.2",
-        "ts-node": "10.8.1"
+        "ts-node": "10.8.1",
+        "typescript": "4.7.2"
     },
     "dependencies": {
-        "@spressoinsights/price_optimization_initial_dev": "npm:@spressoinsights/price_optimization",
+        "@spressoinsights/auth_initial_dev": "npm:@spressoinsights/auth",
         "@spressoinsights/cache_in_memory_initial_dev": "npm:@spressoinsights/cache_in_memory",
-        "@spressoinsights/auth_initial_dev": "npm:@spressoinsights/auth"
+        "@spressoinsights/price_optimization_initial_dev": "npm:@spressoinsights/price_optimization",
+        "pino": "8.7.0"
     }
 }

@@ -12,6 +12,7 @@ import {
 import { InMemory } from '@spressoinsights/cache_in_memory_initial_dev';
 import { expect } from 'chai';
 import { assertString } from '../utils';
+import { levels, pino } from 'pino';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 assertString(clientSecretEnv);
@@ -79,6 +80,12 @@ describe('Version Initial_Dev', () => {
                 })
             ),
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
+            logger: pino(
+                { level: 'debug' },
+                pino.destination({
+                    sync: true,
+                })
+            ),
         });
 
         const client = new PriceOptimimizationClient_Initial_Dev(options);
@@ -98,6 +105,12 @@ describe('Version Initial_Dev', () => {
                 })
             ),
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
+            logger: pino(
+                { level: 'debug' },
+                pino.destination({
+                    sync: true,
+                })
+            ),
         });
 
         const client = new PriceOptimimizationClient_Initial_Dev(options);

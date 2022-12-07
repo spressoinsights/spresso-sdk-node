@@ -2,6 +2,7 @@ import { IAuth } from '@spressoinsights/auth';
 import { ICacheStrategy } from '@spressoinsights/cache';
 import { PriceOptimization } from './PriceOptimization';
 import { PriceOptimizationCacheKey } from './PriceOptimizationCacheKey';
+import { Logger, LoggerFuncs } from '@spressoinsights/utils';
 
 export type ResiliencyPolicy = {
     numberOfRetries: number;
@@ -15,6 +16,7 @@ export class PriceOptimizationClientOptions {
     public readonly cachingStrategy: ICacheStrategy<PriceOptimizationCacheKey, PriceOptimization>;
     public readonly resiliencyPolicy: ResiliencyPolicy;
     public readonly defaultSpressoBaseUrl: string;
+    public readonly logger: Logger;
 
     private readonly defaultResiliencyPolicy: ResiliencyPolicy = {
         numberOfRetries: 10,
@@ -34,6 +36,7 @@ export class PriceOptimizationClientOptions {
                 numberOfFailuresBeforeTrippingCircuitBreaker?: number;
                 circuitBreakerBreakDurationMs?: number;
             };
+            logger?: LoggerFuncs;
         }
     ) {
         this.authenticator = options.authenticator;
@@ -50,6 +53,7 @@ export class PriceOptimizationClientOptions {
             this.sanitizeNumberOfFailuresBeforeTrippingCircuitBreaker(this.resiliencyPolicy);
 
         this.defaultSpressoBaseUrl = options.defaultSpressoBaseUrl ?? 'https://api.spresso.com';
+        this.logger = new Logger({ namespace: '@PriceOptimization_Client', logger: options?.logger });
     }
 
     private sanitizeResiliencyPolicyNumberOfRetries(policy: ResiliencyPolicy): number {
