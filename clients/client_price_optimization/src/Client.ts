@@ -54,14 +54,12 @@ type ApiInputWithResponse = {
 };
 
 export class PriceOptimimizationClient {
-    private readonly baseUrl = 'https://public-catalog-api.us-east4.staging.spresso.com/v1';
-
     private readonly options: PriceOptimizationClientOptions;
     private readonly httpClient: HttpClientOrg;
     private readonly cache: ICacheStrategy<PriceOptimizationCacheKey, PriceOptimization>;
     private readonly configCache: InMemory<{ config: 'config' }, PriceOptimizationOrgConfigInMemory>;
-    private readonly getPriceOptimizationResiliencyPolicy: ResiliencyPolicy; // this should only wrap the api call...
-    private readonly getPriceOptimizationsResiliencyPolicy: ResiliencyPolicy; // this should only wrap the api call...
+    private readonly getPriceOptimizationResiliencyPolicy: ResiliencyPolicy;
+    private readonly getPriceOptimizationsResiliencyPolicy: ResiliencyPolicy;
 
     constructor(options: PriceOptimizationClientOptions) {
         this.options = options;
@@ -222,7 +220,7 @@ export class PriceOptimimizationClient {
 
     private async getOrgConfigFromApi(): Promise<PriceOptimizationOrgConfig> {
         const { logger } = this.options;
-        const url = `${this.baseUrl}/priceOptimizationOrgConfig`;
+        const url = `${this.options.baseUrl}/priceOptimizationOrgConfig`;
 
         const getConfigOutput = await this.httpClient.get<{
             data: PriceOptimizationOrgConfig;
@@ -374,7 +372,7 @@ export class PriceOptimimizationClient {
         input: GetPriceOptimizationInput
     ): Promise<GetPriceOptimizationClientOutput> {
         // todo build/find query string utils with proper escaping and stuff
-        const url = `${this.baseUrl}/priceOptimizations`;
+        const url = `${this.options.baseUrl}/priceOptimizations`;
         const finalUrl =
             `${url}?deviceId=${input.deviceId}&itemId=${input.itemId}&defaultPrice=${
                 input.defaultPrice
@@ -626,7 +624,7 @@ export class PriceOptimimizationClient {
             };
         }
 
-        const url = `${this.baseUrl}/priceOptimizations`;
+        const url = `${this.options.baseUrl}/priceOptimizations`;
 
         const getPriceOptimizationsOutputClient = await this.httpClient.post<{
             data: GetPriceOptimizationsClientOutputData;

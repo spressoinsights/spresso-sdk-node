@@ -15,7 +15,7 @@ export class PriceOptimizationClientOptions {
     public readonly authenticator: IAuth;
     public readonly cachingStrategy: ICacheStrategy<PriceOptimizationCacheKey, PriceOptimization>;
     public readonly resiliencyPolicy: ResiliencyPolicy;
-    public readonly defaultSpressoBaseUrl: string;
+    public readonly baseUrl: string;
     public readonly logger: Logger;
 
     private readonly defaultResiliencyPolicy: ResiliencyPolicy = {
@@ -29,7 +29,7 @@ export class PriceOptimizationClientOptions {
         readonly options: {
             authenticator: IAuth;
             cachingStrategy: ICacheStrategy<PriceOptimizationCacheKey, PriceOptimization>;
-            defaultSpressoBaseUrl?: string;
+            baseUrl?: string;
             resiliencyPolicy?: {
                 numberOfRetries?: number;
                 timeoutMs?: number;
@@ -52,7 +52,7 @@ export class PriceOptimizationClientOptions {
         this.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker =
             this.sanitizeNumberOfFailuresBeforeTrippingCircuitBreaker(this.resiliencyPolicy);
 
-        this.defaultSpressoBaseUrl = options.defaultSpressoBaseUrl ?? 'https://api.spresso.com';
+        this.baseUrl = options.baseUrl ?? 'https://api.spresso.com/';
         this.logger = new Logger({ namespace: '@PriceOptimization_Client', logger: options?.logger });
     }
 
