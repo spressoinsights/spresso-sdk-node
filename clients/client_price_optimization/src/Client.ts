@@ -1,4 +1,5 @@
 import {
+    CacheHit,
     CacheMiss,
     defaultSerialization,
     ICacheStrategy,
@@ -36,6 +37,7 @@ import {
 } from './types/models/PriceOptimizationOrgConfig';
 import { PriceOptimization, PriceOptimizationCacheKey, PriceOptimizationClientOptions } from './types/models';
 import { HttpClientOptions, Success } from '@spressoinsights/http_client';
+import { JSONStringifyOrderedKeys } from '@spressoinsights/utils';
 
 // V3
 // type ResiliencyPolicy = IMergedPolicy<
@@ -179,6 +181,9 @@ export class PriceOptimimizationClient {
     }
 
     private async getOrgConfig(): Promise<PriceOptimizationOrgConfigInMemory> {
+        const { logger } = this.options;
+
+        logger.debug({ msg: 'Calling getOrgConfig.' });
         // add ttl to feature of 15 min to ttl config...
         const configTtlMs = 900000;
 
@@ -190,8 +195,10 @@ export class PriceOptimimizationClient {
             case 'Success':
                 switch (config.value.kind) {
                     case 'CacheHit':
+                        logger.debug({ msg: 'CacheHit: getOrgConfig.' });
                         return config.value.cachedValue;
                     case 'CacheMiss': {
+                        logger.debug({ msg: 'CacheMiss: getOrgConfig.' });
                         const apiResponse = await this.getOrgConfigFromApi();
 
                         const inMemoryRepresentation: PriceOptimizationOrgConfigInMemory = {
@@ -214,6 +221,7 @@ export class PriceOptimimizationClient {
     }
 
     private async getOrgConfigFromApi(): Promise<PriceOptimizationOrgConfig> {
+        const { logger } = this.options;
         const url = `${this.baseUrl}/priceOptimizationOrgConfig`;
 
         const getConfigOutput = await this.httpClient.get<{
@@ -224,6 +232,7 @@ export class PriceOptimimizationClient {
 
         switch (getConfigOutput.kind) {
             case 'Success': {
+                logger.debug({ msg: 'Success: getOrgConfig from API.' });
                 return getConfigOutput.value.data;
             }
             // For any errors return the default object thats the same as the server
@@ -242,12 +251,16 @@ export class PriceOptimimizationClient {
     }
 
     public async getPriceOptimization(input: GetPriceOptimizationInput): Promise<PriceOptimization> {
+        const { logger } = this.options;
+        logger.debug({ msg: 'getPriceOptimization called with:', input });
+
         try {
             const res = await this.getPriceOptimizationResiliencyPolicy.execute(async () =>
                 this._getPriceOptimization(input)
             );
 
             if (res.kind == 'TimeoutError' || res.kind == 'Unknown') {
+                logger.warn({ msg: `Error: getting PriceOptimization ${res.kind}` });
                 return {
                     userId: input.userId,
                     itemId: input.itemId,
@@ -259,6 +272,7 @@ export class PriceOptimimizationClient {
 
             return res.value;
         } catch (err) {
+            logger.warn({ msg: 'Task Cancelled: getPriceOptimization', err });
             return {
                 userId: input.userId,
                 itemId: input.itemId,
@@ -270,9 +284,11 @@ export class PriceOptimimizationClient {
     }
 
     private async _getPriceOptimization(input: GetPriceOptimizationInput): Promise<GetPriceOptimizationOutput> {
+        const { logger } = this.options;
         const config = await this.getOrgConfig();
 
         if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklist)) {
+            logger.debug({ msg: 'Skipping PriceOptimization: UserAgent in blacklist', input });
             return {
                 kind: 'Success',
                 value: {
@@ -295,10 +311,11 @@ export class PriceOptimimizationClient {
         });
 
         switch (cachedItem.kind) {
-            // FatalCacheError?
             case 'FatalError': {
+                logger.error({ msg: `${cachedItem.kind} when accessing cache.`, input });
                 const result = await this.getPriceOptimizationFromApi(input);
                 if (result.kind == 'TimeoutError' || result.kind == 'Unknown') {
+                    logger.warn({ msg: `Error: getting PriceOptimization after cache failure` });
                     return result;
                 }
 
@@ -309,27 +326,33 @@ export class PriceOptimimizationClient {
                 });
 
                 if (cacheRes.kind == 'FatalError') {
-                    console.log(`Unable to cache input: ${JSON.stringify(input)}`);
+                    logger.warn({ msg: `Unable to set cache input`, input });
                 }
                 return result;
             }
             case 'Success': {
                 switch (cachedItem.value.kind) {
                     case 'CacheHit':
+                        logger.debug({ msg: 'CacheHit returning: ', cachedItem });
                         return { kind: 'Success', value: cachedItem.value.cachedValue };
                     case 'CacheMiss': {
                         const result = await this.getPriceOptimizationFromApi(input);
                         if (result.kind == 'TimeoutError' || result.kind == 'Unknown') {
+                            logger.warn({ msg: `Error: getting PriceOptimization after cache miss` });
                             return result;
                         }
 
-                        await this.cache
-                            .set({
-                                entry: this.getCachePayload(input, result.value),
-                                ttlMs: result.value.ttlMs,
-                                logicalDateAdded: await this.syncServerTime(),
-                            })
-                            .catch(); // dont error on not being able to cache ... need to add logging func as an input
+                        const cacheRes = await this.cache.set({
+                            entry: this.getCachePayload(input, result.value),
+                            ttlMs: result.value.ttlMs,
+                            logicalDateAdded: await this.syncServerTime(),
+                        });
+
+                        if (cacheRes.kind == 'FatalError') {
+                            logger.error({ msg: 'Fatal Error when trying to set cache', err: cacheRes.error });
+                        }
+
+                        logger.debug({ msg: 'Successfully acccessed API to get PriceOptimization', result });
 
                         return {
                             kind: 'Success',
@@ -392,12 +415,16 @@ export class PriceOptimimizationClient {
 
     // Many
     public async getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<PriceOptimization[]> {
+        const { logger } = this.options;
+        logger.debug({ msg: 'getPriceOptimizations called with:', input });
+
         try {
             const res = await this.getPriceOptimizationsResiliencyPolicy.execute(async () =>
                 this._getPriceOptimizations(input)
             );
 
             if (res.kind == 'TimeoutError' || res.kind == 'Unknown') {
+                logger.warn({ msg: `Error: getting PriceOptimizations ${res.kind}` });
                 return input.items.map((x) => ({
                     userId: x.userId,
                     itemId: x.itemId,
@@ -409,6 +436,7 @@ export class PriceOptimimizationClient {
 
             return res.value;
         } catch (err) {
+            logger.warn({ msg: 'Task Cancelled: getPriceOptimization', err });
             return input.items.map((x) => ({
                 userId: x.userId,
                 itemId: x.itemId,
@@ -420,9 +448,11 @@ export class PriceOptimimizationClient {
     }
 
     private async _getPriceOptimizations(input: GetPriceOptimizationsInput): Promise<GetPriceOptimizationsOutput> {
+        const { logger } = this.options;
         const config = await this.getOrgConfig();
 
         if (!this.allowUserAgent(input.userAgent, config.userAgentBlacklist)) {
+            logger.debug({ msg: 'Skipping PriceOptimizations: UserAgent in blacklist', input });
             return {
                 kind: 'Success',
                 value: input.items.map((x) => ({
@@ -446,6 +476,7 @@ export class PriceOptimimizationClient {
 
         switch (cachedItems.kind) {
             case 'FatalError':
+                logger.error({ msg: `${cachedItems.kind} when accessing cache.`, input });
                 return this.getPriceOptimizationsFromApi(input);
             case 'Success': {
                 // create map so we can get the inputs that didnt exist in the cache
@@ -453,12 +484,11 @@ export class PriceOptimimizationClient {
                     const obj = this.getCacheKey(x);
 
                     // eslint-disable-next-line functional/immutable-data
-                    const key = JSON.stringify(
-                        obj,
-                        Object.keys(obj).sort((a, b) => a.localeCompare(b))
-                    );
+                    const key = JSONStringifyOrderedKeys(obj);
                     return [key, x] as [string, GetPriceOptimizationInput];
                 });
+
+                logger.debug({ msg: 'getPriceOptimizations: hashedInputs', hashedInputs });
 
                 const clientInputMap = new Map(hashedInputs);
 
@@ -466,72 +496,98 @@ export class PriceOptimimizationClient {
                     cachedItems.value.filter((x) => x.kind === 'CacheMiss') as CacheMiss<PriceOptimizationCacheKey>[]
                 ).map((x) => {
                     const obj = x.input;
+                    const key = JSONStringifyOrderedKeys(obj);
 
-                    const key = JSON.stringify(
-                        obj,
-                        Object.keys(obj).sort((a, b) => a.localeCompare(b))
-                    );
                     return clientInputMap.get(key) as GetPriceOptimizationInput; // this should always resolve
                 });
 
-                const apiResponsesOrError = await this.getPriceOptimizationsFromApi({
+                logger.debug({ msg: 'getPriceOptimizations: cacheMissesRequests', cacheMissesRequests });
+
+                const cacheMissInput = {
                     items: cacheMissesRequests,
                     userAgent: input.userAgent,
-                });
+                };
+
+                const apiResponsesOrError = await this.getPriceOptimizationsFromApi(cacheMissInput);
 
                 if (apiResponsesOrError.kind == 'TimeoutError' || apiResponsesOrError.kind == 'Unknown') {
-                    return apiResponsesOrError;
+                    logger.warn({ msg: `Error: getting PriceOptimization after cache miss`, cacheMissInput });
+                    const mockApiResponses = cacheMissesRequests.map((x) => this._mockAPIResponseFromInput(x));
+                    const responsesWithInput = this._zipApiInputsWithResponses(cacheMissInput, mockApiResponses);
+                    const apiResponseMap = this._generateApiResponseMap(responsesWithInput);
+
+                    return {
+                        kind: 'Success',
+                        value: this._generateResponse(cachedItems, apiResponseMap),
+                    };
                 }
 
-                const responsesWithInput = this._zipApiInputsWithResponses(input, apiResponsesOrError);
+                const responsesWithInput = this._zipApiInputsWithResponses(cacheMissInput, apiResponsesOrError.value);
                 const apiResponseMap = this._generateApiResponseMap(responsesWithInput);
 
                 const serverTime = await this.syncServerTime();
 
                 await Promise.all(
                     responsesWithInput.map(async (x) => {
+                        const cacheInput = this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization);
+                        logger.debug({ msg: 'Caching', cacheInput });
                         const result = await this.cache.set({
-                            entry: this.getCachePayload(x.getPriceOptimizationInput, x.priceOptimization),
+                            entry: cacheInput,
                             ttlMs: x.priceOptimization.ttlMs,
                             logicalDateAdded: serverTime,
                         });
 
                         if (result.kind == 'FatalError') {
-                            console.log(`Unable to cache inut: ${JSON.stringify(x.getPriceOptimizationInput)}`);
+                            logger.warn({ msg: `Unable to cache input`, input: x.getPriceOptimizationInput });
                         }
                     })
                 );
 
-                // Note: We do this to preserve order
                 return {
                     kind: 'Success',
-                    value: cachedItems.value.map((cacheOutput) => {
-                        switch (cacheOutput.kind) {
-                            case 'CacheHit':
-                                return cacheOutput.cachedValue;
-                            case 'CacheMiss': {
-                                const obj = cacheOutput.input;
-                                const key = JSON.stringify(
-                                    obj,
-                                    Object.keys(obj).sort((a, b) => a.localeCompare(b))
-                                );
-                                return apiResponseMap.get(key) as PriceOptimization;
-                            }
-                        }
-                    }),
+                    value: this._generateResponse(cachedItems, apiResponseMap),
                 };
             }
         }
     }
 
+    private _mockAPIResponseFromInput(input: GetPriceOptimizationInput): GetPriceOptimizationClientOutputData {
+        return {
+            userId: input.userId,
+            itemId: input.itemId,
+            price: input.defaultPrice,
+            deviceId: input.deviceId,
+            isPriceOptimized: false,
+            ttlMs: -1,
+        };
+    }
+
+    // Note: We do this to preserve order
+    private _generateResponse(
+        cachedItems: Success<(CacheHit<PriceOptimization> | CacheMiss<PriceOptimizationCacheKey>)[]>,
+        apiResponseMap: Map<string, PriceOptimization>
+    ): PriceOptimization[] {
+        return cachedItems.value.map((cacheOutput) => {
+            switch (cacheOutput.kind) {
+                case 'CacheHit':
+                    return cacheOutput.cachedValue;
+                case 'CacheMiss': {
+                    const obj = cacheOutput.input;
+                    const key = JSONStringifyOrderedKeys(obj);
+                    return apiResponseMap.get(key) as PriceOptimization;
+                }
+            }
+        });
+    }
+
     private _zipApiInputsWithResponses(
         input: GetPriceOptimizationsInput,
-        apiResponses: Success<GetPriceOptimizationsClientOutputData>
+        apiResponses: GetPriceOptimizationsClientOutputData
     ): ApiInputWithResponse[] {
         // Note: Api should always return the responses to mimic the ordering and count of the input list
         return lodash
             .chain(input.items)
-            .zip(apiResponses.value)
+            .zip(apiResponses)
             .map((x) => ({
                 getPriceOptimizationInput: x[0] as Omit<GetPriceOptimizationInput, 'userAgent'>,
                 priceOptimization: x[1] as GetPriceOptimizationClientOutputData,
@@ -545,11 +601,7 @@ export class PriceOptimimizationClient {
         const apiResponseMapEntries = apiInputWithResponse.map((x) => {
             const obj = this.getCacheKey(x.getPriceOptimizationInput);
 
-            const key = JSON.stringify(
-                obj,
-                Object.keys(obj).sort((a, b) => a.localeCompare(b))
-            );
-
+            const key = JSONStringifyOrderedKeys(obj);
             const priceOptimization: PriceOptimization = {
                 userId: x.priceOptimization.userId,
                 itemId: x.priceOptimization.itemId,
