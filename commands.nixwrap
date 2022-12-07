@@ -9,7 +9,7 @@ unitTesting:
 integrationTesting:
 	npm run test:integration
 e2eTesting: installForE2ETesting
-	cd tests/e2e && npx mocha "./**/**.test.ts"
+	cd tests/e2e/test && npx mocha "./**/**.test.ts"
 bootstrap: install
 	npm run bootstrap
 build:
