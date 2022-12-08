@@ -52,8 +52,8 @@ export class PriceOptimizationClientOptions {
         this.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker =
             this.sanitizeNumberOfFailuresBeforeTrippingCircuitBreaker(this.resiliencyPolicy);
 
-        this.baseUrl = options.baseUrl ?? 'https://api.spresso.com/';
-        this.logger = new Logger({ namespace: '@PriceOptimization_Client', logger: options?.logger });
+        this.baseUrl = options.baseUrl ?? 'https://api.spresso.com';
+        this.logger = new Logger({ namespace: '@PriceOptimizationClient', logger: options?.logger });
     }
 
     private sanitizeResiliencyPolicyNumberOfRetries(policy: ResiliencyPolicy): number {

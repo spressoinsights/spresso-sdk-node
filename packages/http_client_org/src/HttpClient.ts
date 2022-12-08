@@ -9,8 +9,12 @@ export class HttpClientOrg {
     }
 
     public async get<T>(getInput: { url: string }): Promise<HttpResponse<T>> {
+        const { logger } = this.options;
+        logger.debug({ msg: 'Getting accessToken.' });
+
         const accessToken = await this.authenticator.getAccessToken();
         if (!accessToken.success) {
+            logger.warn({ msg: 'Failed to get accessToken for GET.', err: accessToken.error });
             return accessToken.error;
         }
 
@@ -18,8 +22,12 @@ export class HttpClientOrg {
     }
 
     public async post<T>(postInput: { url: string; body: Record<string, unknown> }): Promise<HttpResponse<T>> {
+        const { logger } = this.options;
+        logger.debug({ msg: 'Getting accessToken.' });
+
         const accessToken = await this.authenticator.getAccessToken();
         if (!accessToken.success) {
+            logger.warn({ msg: 'Failed to get accessToken for POST.', err: accessToken.error });
             return accessToken.error;
         }
 

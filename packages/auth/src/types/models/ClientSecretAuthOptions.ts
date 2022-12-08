@@ -20,9 +20,10 @@ export class ClientSecretAuthOptions {
     private sanitizeUrl(options: ClientSecretAuthOptionsInputType): string {
         if (options.baseUrl != undefined) {
             // Throws type error
-            return new URL(options.baseUrl).href;
+            new URL(options.baseUrl);
+            return options.baseUrl;
         } else {
-            return 'https://api.spresso.com/';
+            return 'https://api.spresso.com';
         }
     }
 }

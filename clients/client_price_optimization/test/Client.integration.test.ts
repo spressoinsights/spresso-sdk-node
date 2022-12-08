@@ -1,23 +1,19 @@
 import {
     GetPriceOptimizationInput,
     GetPriceOptimizationsInput,
-    PriceOptimimizationClient as PriceOptimimizationClient_Initial_Dev,
+    PriceOptimimizationClient,
     PriceOptimization,
-    PriceOptimizationClientOptions as PriceOptimizationClientOptions_Initial_Dev,
-} from '@spressoinsights/price_optimization_initial_dev';
-import {
-    ClientSecretAuth as ClientSecretAuth_Initial_Dev,
-    ClientSecretAuthOptions as ClientSecretAuthOptions_Initial_Dev,
-} from '@spressoinsights/auth_initial_dev';
-import { InMemory } from '@spressoinsights/cache_in_memory_initial_dev';
+    PriceOptimizationClientOptions,
+} from '../src';
+import { ClientSecretAuth, ClientSecretAuthOptions } from '../../../packages/auth';
+import { InMemory } from '../../../packages/cache_in_memory';
 import { expect } from 'chai';
-import { assertString } from '../utils';
-import { levels, pino } from 'pino';
+import { assertString } from '../../../tests/e2e/test/utils';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 assertString(clientSecretEnv);
 
-async function testGetPriceOptimization(client: PriceOptimimizationClient_Initial_Dev): Promise<void> {
+async function testGetPriceOptimization(client: PriceOptimimizationClient): Promise<void> {
     const input: GetPriceOptimizationInput = {
         deviceId: 'somedeviceid',
         userId: 'SomeUserId',
@@ -40,7 +36,7 @@ async function testGetPriceOptimization(client: PriceOptimimizationClient_Initia
     expect(output).to.include(res);
 }
 
-async function testGetPriceOptimizations(client: PriceOptimimizationClient_Initial_Dev): Promise<void> {
+async function testGetPriceOptimizations(client: PriceOptimimizationClient): Promise<void> {
     const input: GetPriceOptimizationsInput = {
         userAgent: '',
         items: [
@@ -69,11 +65,11 @@ async function testGetPriceOptimizations(client: PriceOptimimizationClient_Initi
     expect(output).to.deep.equal(res);
 }
 
-describe('Version Initial_Dev', () => {
+describe('Client', () => {
     it('Can successfully getPriceOptimization', async () => {
-        const options = new PriceOptimizationClientOptions_Initial_Dev({
-            authenticator: new ClientSecretAuth_Initial_Dev(
-                new ClientSecretAuthOptions_Initial_Dev({
+        const options = new PriceOptimizationClientOptions({
+            authenticator: new ClientSecretAuth(
+                new ClientSecretAuthOptions({
                     baseUrl: 'https://dev-369tg5rm.us.auth0.com',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
@@ -81,15 +77,10 @@ describe('Version Initial_Dev', () => {
             ),
             baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
-            logger: pino(
-                { level: 'debug' },
-                pino.destination({
-                    sync: true,
-                })
-            ),
+            logger: console,
         });
 
-        const client = new PriceOptimimizationClient_Initial_Dev(options);
+        const client = new PriceOptimimizationClient(options);
 
         await testGetPriceOptimization(client);
         // to make sure caching works
@@ -97,9 +88,9 @@ describe('Version Initial_Dev', () => {
     });
 
     it('Can successfully getPriceOptimizations', async () => {
-        const options = new PriceOptimizationClientOptions_Initial_Dev({
-            authenticator: new ClientSecretAuth_Initial_Dev(
-                new ClientSecretAuthOptions_Initial_Dev({
+        const options = new PriceOptimizationClientOptions({
+            authenticator: new ClientSecretAuth(
+                new ClientSecretAuthOptions({
                     baseUrl: 'https://dev-369tg5rm.us.auth0.com',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
@@ -107,15 +98,10 @@ describe('Version Initial_Dev', () => {
             ),
             baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
-            logger: pino(
-                { level: 'debug' },
-                pino.destination({
-                    sync: true,
-                })
-            ),
+            logger: console,
         });
 
-        const client = new PriceOptimimizationClient_Initial_Dev(options);
+        const client = new PriceOptimimizationClient(options);
 
         await testGetPriceOptimizations(client);
         // to make sure caching works

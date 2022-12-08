@@ -11,10 +11,14 @@ export type HttpResponseError = AuthError | BadRequestError | UnknownError | Tim
 
 export type AuthError = {
     kind: 'AuthError';
+    statusCode: number;
+    reason: any;
 };
 
 export type BadRequestError = {
     kind: 'BadRequest';
+    statusCode: number;
+    reason: any;
 };
 
 export type TimeoutError = {
@@ -23,4 +27,6 @@ export type TimeoutError = {
 
 export type UnknownError = {
     kind: 'Unknown';
+    statusCode: number;
+    reason: any;
 };

@@ -63,7 +63,7 @@ export class PriceOptimimizationClient {
 
     constructor(options: PriceOptimizationClientOptions) {
         this.options = options;
-        this.httpClient = new HttpClientOrg(options.authenticator, new HttpClientOptions());
+        this.httpClient = new HttpClientOrg(options.authenticator, new HttpClientOptions({ logger: options.logger }));
         this.cache = options.cachingStrategy;
         this.configCache = new InMemory({ maxElementCount: 100, defaultTtlMs: 900000 });
 
@@ -220,7 +220,7 @@ export class PriceOptimimizationClient {
 
     private async getOrgConfigFromApi(): Promise<PriceOptimizationOrgConfig> {
         const { logger } = this.options;
-        const url = `${this.options.baseUrl}/priceOptimizationOrgConfig`;
+        const url = `${this.options.baseUrl}/v1/priceOptimizationOrgConfig`;
 
         const getConfigOutput = await this.httpClient.get<{
             data: PriceOptimizationOrgConfig;
@@ -350,8 +350,6 @@ export class PriceOptimimizationClient {
                             logger.error({ msg: 'Fatal Error when trying to set cache', err: cacheRes.error });
                         }
 
-                        logger.debug({ msg: 'Successfully acccessed API to get PriceOptimization', result });
-
                         return {
                             kind: 'Success',
                             value: {
@@ -371,13 +369,14 @@ export class PriceOptimimizationClient {
     private async getPriceOptimizationFromApi(
         input: GetPriceOptimizationInput
     ): Promise<GetPriceOptimizationClientOutput> {
+        const { logger } = this.options;
         // todo build/find query string utils with proper escaping and stuff
-        const url = `${this.options.baseUrl}/priceOptimizations`;
+        const url = `${this.options.baseUrl}/v1/priceOptimizations`;
         const finalUrl =
             `${url}?deviceId=${input.deviceId}&itemId=${input.itemId}&defaultPrice=${
                 input.defaultPrice
             }&overrideToDefaultPrice=${input.overrideToDefaultPrice.toString()}` +
-            (input.userId != null ? `&userId=${input.userId}` : '');
+            (input.userId != null && input.userId != undefined ? `&userId=${input.userId}` : '');
 
         const getPriceOptimizationOutputClient = await this.httpClient.get<{
             data: GetPriceOptimizationClientOutputData;
@@ -387,6 +386,10 @@ export class PriceOptimimizationClient {
 
         switch (getPriceOptimizationOutputClient.kind) {
             case 'Success':
+                logger.debug({
+                    msg: 'Successfully acccessed API to get PriceOptimization',
+                    getPriceOptimizationOutputClient,
+                });
                 return {
                     kind: 'Success',
                     value: {
@@ -396,6 +399,10 @@ export class PriceOptimimizationClient {
                 };
             case 'AuthError':
             case 'BadRequest':
+                logger.warn({
+                    msg: 'Error getting PriceOptimization from API.',
+                    reason: getPriceOptimizationOutputClient,
+                });
                 return {
                     kind: 'Success',
                     value: {
@@ -617,6 +624,7 @@ export class PriceOptimimizationClient {
     private async getPriceOptimizationsFromApi(
         input: GetPriceOptimizationsInput
     ): Promise<GetPriceOptimizationsClientOutput> {
+        const { logger } = this.options;
         if (lodash.isEmpty(input.items)) {
             return {
                 kind: 'Success',
@@ -624,7 +632,7 @@ export class PriceOptimimizationClient {
             };
         }
 
-        const url = `${this.options.baseUrl}/priceOptimizations`;
+        const url = `${this.options.baseUrl}/v1/priceOptimizations`;
 
         const getPriceOptimizationsOutputClient = await this.httpClient.post<{
             data: GetPriceOptimizationsClientOutputData;
@@ -641,6 +649,10 @@ export class PriceOptimimizationClient {
             }
             case 'AuthError':
             case 'BadRequest':
+                logger.warn({
+                    msg: 'Error getting PriceOptimization from API.',
+                    reason: getPriceOptimizationsOutputClient,
+                });
                 return {
                     kind: 'Success',
                     value: input.items.map((x) => ({

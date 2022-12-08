@@ -59,7 +59,7 @@ export class ClientSecretAuth implements IAuth {
     }
 
     private async getAccessTokenFromAuthApi(): Promise<HttpResponse<Auth0Response>> {
-        const url = `${this.options.baseUrl}/oauth/token/`;
+        const url = `${this.options.baseUrl}/oauth/token`;
 
         const input = {
             client_id: this.options.clientId,
