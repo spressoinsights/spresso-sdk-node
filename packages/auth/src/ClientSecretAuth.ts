@@ -59,6 +59,8 @@ export class ClientSecretAuth implements IAuth {
     }
 
     private async getAccessTokenFromAuthApi(): Promise<HttpResponse<Auth0Response>> {
+        const url = `${this.options.baseUrl}/oauth/token`;
+
         const input = {
             client_id: this.options.clientId,
             client_secret: this.options.clientSecret,
@@ -66,6 +68,6 @@ export class ClientSecretAuth implements IAuth {
             grant_type: 'client_credentials',
         };
 
-        return this.httpClient.post<Auth0Response>({ url: this.options.url, body: input });
+        return this.httpClient.post<Auth0Response>({ url, body: input });
     }
 }

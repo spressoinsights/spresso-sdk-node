@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { HttpResponse, Success, AuthError, BadRequestError, UnknownError, TimeoutError } from './types';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import http from 'http';
@@ -18,19 +19,24 @@ export class HttpClient {
     }
 
     private mapResponse<T>(response: AxiosResponse<any, any>): HttpResponse<T> {
+        const { logger } = this.options;
         if (response.status >= 200 && response.status < 300) {
             // should parse this with a validator...
             return { kind: 'Success', value: response.data as T };
         } else if (response.status >= 300 && response.status < 400) {
-            return { kind: 'Unknown' };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            return { kind: 'Unknown', statusCode: response.status, reason: response.statusText };
         } else if (response.status >= 400 && response.status < 500) {
             if (response.status == 401 || response.status == 403) {
-                return { kind: 'AuthError' };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                return { kind: 'AuthError', statusCode: response.status, reason: response.statusText };
             } else {
-                return { kind: 'BadRequest' };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                return { kind: 'BadRequest', statusCode: response.status, reason: response.statusText };
             }
         } else {
-            return { kind: 'Unknown' };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            return { kind: 'Unknown', statusCode: response.status, reason: response.statusText };
         }
     }
 
@@ -39,7 +45,8 @@ export class HttpClient {
         if (err.code == 'ECONNABORTED') {
             return { kind: 'TimeoutError' };
         } else {
-            return { kind: 'Unknown' };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            return { kind: 'Unknown', statusCode: err['status'] ?? 500, reason: err };
         }
     }
 
@@ -48,6 +55,10 @@ export class HttpClient {
         headers?: Record<string, string>;
         options?: { timeoutMs?: number };
     }): Promise<HttpResponse<T>> {
+        const { logger } = this.options;
+
+        logger.debug({ msg: 'GET Request', url: getInput.url });
+
         return this.client
             .get(getInput.url, {
                 headers: getInput.headers ?? {},
@@ -65,6 +76,10 @@ export class HttpClient {
         body: Record<string, unknown>;
         options?: { timeoutMs?: number };
     }): Promise<HttpResponse<T>> {
+        const { logger } = this.options;
+
+        logger.debug({ msg: 'POST Request', url: postInput.url, body: postInput.body });
+
         return this.client
             .post(postInput.url, postInput.body, {
                 headers: postInput.headers ?? {},

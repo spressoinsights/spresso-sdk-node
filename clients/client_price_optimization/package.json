@@ -1,6 +1,6 @@
 {
     "name": "@spressoinsights/price_optimization",
-    "version": "0.0.10",
+    "version": "0.0.12",
     "main": "./dist-cjs/index.js",
     "module": "./dist-es/index.js",
     "types": "./dist-types/index.d.ts",
@@ -9,17 +9,18 @@
         "build:cjs": "tsc -p tsconfig.cjs.json",
         "build:es": "tsc -p tsconfig.es.json",
         "build:types": "tsc -p tsconfig.types.json",
-        "lint": "cd ../../ && npx eslint ./clients/client_price_optimization"
+        "lint": "cd ../../ && npx eslint ./clients/client_price_optimization",
+        "test:integration": "npx mocha ./**/**.integration.test.ts"
     },
     "author": {
         "name": "Spresso SDK for Node Team"
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "@spressoinsights/cache": "^0.0.10",
-        "@spressoinsights/cache_in_memory": "^0.0.10",
-        "@spressoinsights/http_client_org": "^0.0.10",
-        "@spressoinsights/utils": "^0.0.10",
+        "@spressoinsights/cache": "^0.0.12",
+        "@spressoinsights/cache_in_memory": "^0.0.12",
+        "@spressoinsights/http_client_org": "^0.0.12",
+        "@spressoinsights/utils": "^0.0.12",
         "cockatiel": "2.0.2",
         "tslib": "^2.3.1"
     },

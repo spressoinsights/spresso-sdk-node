@@ -1,5 +1,5 @@
 type ClientSecretAuthOptionsInputType = {
-    url?: string;
+    baseUrl?: string;
     clientId: string;
     clientSecret: string;
 };
@@ -7,22 +7,23 @@ type ClientSecretAuthOptionsInputType = {
 export class ClientSecretAuthOptions {
     public readonly credentialsExpireWindowMs = 300000;
 
-    public readonly url: string;
+    public readonly baseUrl: string;
     public readonly clientId: string;
     public readonly clientSecret: string;
 
     constructor(options: ClientSecretAuthOptionsInputType) {
-        this.url = this.sanitizeUrl(options);
+        this.baseUrl = this.sanitizeUrl(options);
         this.clientId = options.clientId;
         this.clientSecret = options.clientSecret;
     }
 
     private sanitizeUrl(options: ClientSecretAuthOptionsInputType): string {
-        if (options.url != undefined) {
+        if (options.baseUrl != undefined) {
             // Throws type error
-            return new URL(options.url).href;
+            new URL(options.baseUrl);
+            return options.baseUrl;
         } else {
-            return 'https://api.spresso.com/oauth/token';
+            return 'https://api.spresso.com';
         }
     }
 }

@@ -69,4 +69,6 @@ jobs:
             - name: Build
               run: nix-shell --command "make -f ./commands.nixwrap build"
             - name: Integration Testing
+              env:
+                CLIENTSECRET: ${{ secrets.CLIENTSECRET }}
               run: nix-shell --command "make -f ./commands.nixwrap integrationTesting"
