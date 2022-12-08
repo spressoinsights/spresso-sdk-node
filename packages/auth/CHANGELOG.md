@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.12](/compare/v0.0.11...v0.0.12) (2022-12-08)
+
+**Note:** Version bump only for package @spressoinsights/auth
+
 ## [0.0.11](/compare/v0.0.10...v0.0.11) (2022-12-07)
 
 **Note:** Version bump only for package @spressoinsights/auth
