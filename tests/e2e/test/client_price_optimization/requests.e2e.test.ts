@@ -74,7 +74,7 @@ describe('Version Initial_Dev', () => {
         const options = new PriceOptimizationClientOptions_Initial_Dev({
             authenticator: new ClientSecretAuth_Initial_Dev(
                 new ClientSecretAuthOptions_Initial_Dev({
-                    baseUrl: 'https://dev-369tg5rm.us.auth0.com',
+                    baseUrl: 'https://api.staging.spresso.com/identity/v1/public/token',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
                 })
@@ -100,7 +100,7 @@ describe('Version Initial_Dev', () => {
         const options = new PriceOptimizationClientOptions_Initial_Dev({
             authenticator: new ClientSecretAuth_Initial_Dev(
                 new ClientSecretAuthOptions_Initial_Dev({
-                    baseUrl: 'https://dev-369tg5rm.us.auth0.com',
+                    baseUrl: 'https://api.staging.spresso.com/identity/v1/public/token',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
                 })
