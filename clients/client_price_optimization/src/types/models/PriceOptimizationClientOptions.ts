@@ -52,7 +52,7 @@ export class PriceOptimizationClientOptions {
         this.resiliencyPolicy.numberOfFailuresBeforeTrippingCircuitBreaker =
             this.sanitizeNumberOfFailuresBeforeTrippingCircuitBreaker(this.resiliencyPolicy);
 
-        this.baseUrl = options.baseUrl ?? 'https://api.spresso.com';
+        this.baseUrl = options.baseUrl ?? 'https://api.spresso.com/pim';
         this.logger = new Logger({ namespace: '@PriceOptimizationClient', logger: options?.logger });
     }
 

@@ -70,7 +70,7 @@ describe('Client', () => {
         const options = new PriceOptimizationClientOptions({
             authenticator: new ClientSecretAuth(
                 new ClientSecretAuthOptions({
-                    baseUrl: 'https://dev-369tg5rm.us.auth0.com',
+                    baseUrl: 'https://api.staging.spresso.com',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
                 })
@@ -91,7 +91,7 @@ describe('Client', () => {
         const options = new PriceOptimizationClientOptions({
             authenticator: new ClientSecretAuth(
                 new ClientSecretAuthOptions({
-                    baseUrl: 'https://dev-369tg5rm.us.auth0.com',
+                    baseUrl: 'https://api.staging.spresso.com',
                     clientId: 'BKW7vdWHkSplXj6VshA7iEB8iiH6lNSI',
                     clientSecret: clientSecretEnv,
                 })
