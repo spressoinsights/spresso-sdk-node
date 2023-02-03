@@ -23,7 +23,7 @@ export class ClientSecretAuthOptions {
             new URL(options.baseUrl);
             return options.baseUrl;
         } else {
-            return 'https://auth.spresso.com';
+            return 'https://api.spresso.com';
         }
     }
 }
