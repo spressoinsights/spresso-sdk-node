@@ -79,7 +79,7 @@ describe('Version Initial_Dev', () => {
                     clientSecret: clientSecretEnv,
                 })
             ),
-            baseUrl: 'https://api.staging.spresso.com/pim',
+            baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
             logger: pino(
                 { level: 'debug' },
@@ -105,7 +105,7 @@ describe('Version Initial_Dev', () => {
                     clientSecret: clientSecretEnv,
                 })
             ),
-            baseUrl: 'https://api.staging.spresso.com/pim',
+            baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
             logger: pino(
                 { level: 'debug' },

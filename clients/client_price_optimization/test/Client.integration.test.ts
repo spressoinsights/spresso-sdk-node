@@ -75,7 +75,7 @@ describe('Client', () => {
                     clientSecret: clientSecretEnv,
                 })
             ),
-            baseUrl: 'https://api.staging.spresso.com/pim',
+            baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
             logger: console,
         });
@@ -96,7 +96,7 @@ describe('Client', () => {
                     clientSecret: clientSecretEnv,
                 })
             ),
-            baseUrl: 'https://api.staging.spresso.com/pim',
+            baseUrl: 'https://public-catalog-api.us-east4.staging.spresso.com',
             cachingStrategy: new InMemory({ maxElementCount: 100, defaultTtlMs: 100000 }),
             logger: console,
         });
