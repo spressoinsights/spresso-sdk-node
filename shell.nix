@@ -12,6 +12,5 @@ in
       kubectl
     ];
     shellHook = ''
-      export CLIENTSECRET=Pv1om60PDE0RV7M8WmhsGPyeeLaXkwF_1bFXQSFZT12Hgnr0bb8vXp_Lm3tHViWY
     '';
   }
