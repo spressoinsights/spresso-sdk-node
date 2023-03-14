@@ -1,3 +1,7 @@
+import { expect } from 'chai';
+import { ClientSecretAuth, ClientSecretAuthOptions } from '../../../packages/auth';
+import { InMemory } from '../../../packages/cache_in_memory';
+import { assertString } from '../../../tests/e2e/test/utils';
 import {
     GetPriceOptimizationInput,
     GetPriceOptimizationsInput,
@@ -5,10 +9,6 @@ import {
     PriceOptimization,
     PriceOptimizationClientOptions,
 } from '../src';
-import { ClientSecretAuth, ClientSecretAuthOptions } from '../../../packages/auth';
-import { InMemory } from '../../../packages/cache_in_memory';
-import { expect } from 'chai';
-import { assertString } from '../../../tests/e2e/test/utils';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 assertString(clientSecretEnv);
@@ -30,7 +30,7 @@ async function testGetPriceOptimization(client: PriceOptimimizationClient): Prom
         itemId: input.itemId,
         isPriceOptimized: true,
         userId: input.userId,
-        price: 5,
+        price: 25,
     };
 
     expect(output).to.include(res);
@@ -58,7 +58,7 @@ async function testGetPriceOptimizations(client: PriceOptimimizationClient): Pro
             itemId: input.items[0]?.itemId as string,
             isPriceOptimized: true,
             userId: input.items[0]?.userId as string,
-            price: 5,
+            price: 25,
         },
     ];
 

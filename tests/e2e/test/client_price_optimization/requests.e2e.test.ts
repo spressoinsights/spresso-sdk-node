@@ -1,18 +1,18 @@
 import {
+    ClientSecretAuth as ClientSecretAuth_Initial_Dev,
+    ClientSecretAuthOptions as ClientSecretAuthOptions_Initial_Dev,
+} from '@spressoinsights/auth_initial_dev';
+import { InMemory } from '@spressoinsights/cache_in_memory_initial_dev';
+import {
     GetPriceOptimizationInput,
     GetPriceOptimizationsInput,
     PriceOptimimizationClient as PriceOptimimizationClient_Initial_Dev,
     PriceOptimization,
     PriceOptimizationClientOptions as PriceOptimizationClientOptions_Initial_Dev,
 } from '@spressoinsights/price_optimization_initial_dev';
-import {
-    ClientSecretAuth as ClientSecretAuth_Initial_Dev,
-    ClientSecretAuthOptions as ClientSecretAuthOptions_Initial_Dev,
-} from '@spressoinsights/auth_initial_dev';
-import { InMemory } from '@spressoinsights/cache_in_memory_initial_dev';
 import { expect } from 'chai';
+import { pino } from 'pino';
 import { assertString } from '../utils';
-import { levels, pino } from 'pino';
 
 const clientSecretEnv = process.env['CLIENTSECRET'];
 assertString(clientSecretEnv);
@@ -34,7 +34,7 @@ async function testGetPriceOptimization(client: PriceOptimimizationClient_Initia
         itemId: input.itemId,
         isPriceOptimized: true,
         userId: input.userId,
-        price: 5,
+        price: 25,
     };
 
     expect(output).to.include(res);
@@ -62,7 +62,7 @@ async function testGetPriceOptimizations(client: PriceOptimimizationClient_Initi
             itemId: input.items[0]?.itemId as string,
             isPriceOptimized: true,
             userId: input.items[0]?.userId as string,
-            price: 5,
+            price: 25,
         },
     ];
 
