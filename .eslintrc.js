@@ -4,12 +4,11 @@ module.exports = {
     parserOptions: {
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.base.json'],
-        //project: ['./packages/auth/tsconfig.json'],
     },
-    plugins: ['@typescript-eslint', 'functional', 'mocha', 'import', 'chai-friendly'],
+    plugins: ['@typescript-eslint', 'functional', 'import'],
     rules: {
         'functional/no-loop-statement': 'warn',
-        'functional/immutable-data': 'warn',
+        'functional/immutable-data': 'off',
         'functional/no-let': 'warn',
         'functional/prefer-readonly-type': 'off',
         'functional/no-method-signature': 'off',
@@ -47,7 +46,7 @@ module.exports = {
             'error',
             {
                 selector: ['classProperty', 'variable', 'function', 'method'],
-                format: ['camelCase'],
+                format: ['camelCase', 'UPPER_CASE'],
                 leadingUnderscore: 'allow',
             },
             {
@@ -68,28 +67,13 @@ module.exports = {
                 selector: ['enum', 'enumMember'],
                 format: ['UPPER_CASE'],
             },
-        ],
-        'mocha/no-mocha-arrows': 'off',
-        'mocha/prefer-arrow-callback': 'warn',
-        // Force capitalization for describe
-        'mocha/valid-suite-description': ['warn', '^[A-Z]'],
+        ]
     },
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'plugin:functional/no-mutations',
-        'prettier',
-        'plugin:mocha/recommended',
-        'plugin:chai-friendly/recommended',
-    ],
-    overrides: [
-        {
-            files: ['*.test.ts'], // Or *.test.js
-            rules: {
-                'functional/no-let': 'off',
-                '@typescript-eslint/no-magic-numbers': 'off',
-            },
-        },
-    ],
+        'prettier'
+    ]
 };
