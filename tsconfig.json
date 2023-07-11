@@ -2,6 +2,8 @@
     "compilerOptions": {
         "allowUnreachableCode": false,
         "exactOptionalPropertyTypes": true,
+        "importHelpers": true,
+        "noEmitHelpers": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": true,
         "noImplicitOverride": true,
@@ -11,7 +13,7 @@
         "noUncheckedIndexedAccess": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
+        "module": "esnext",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "sourceMap": true,
@@ -19,10 +21,11 @@
         "plugins": [],
         "experimentalDecorators": true,
         "lib": ["es2015", "dom"],
-        "target": "es2019",
+        "target": "ES2018",
         "downlevelIteration": true,
         "noErrorTruncation": true,
         "esModuleInterop": true,
-        "removeComments": true
+        "removeComments": true,
+        "outDir": "dist"
     }
 }

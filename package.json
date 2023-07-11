@@ -1,9 +1,12 @@
 {
     "name": "@spressoinsights/spresso_sdk_node",
+    "version": "1.0.0",
     "description": "Spresso SDK for Node",
     "sideEffects": false,
     "private": true,
     "scripts": {
+        "build": "npx tsc -b ./tsconfig.json",
+        "publish": "npm publish",
         "lint": "npx eslint ./src"
     },
     "author": "",

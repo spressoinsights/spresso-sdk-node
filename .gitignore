@@ -1,7 +1,5 @@
 # Dist files
-dist-cjs
-dist-es
-dist-types
+dist
 
 # Logs
 logs
