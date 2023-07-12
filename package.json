@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Spresso SDK for Node",
     "sideEffects": false,
-    "private": true,
+    "private": false,
     "scripts": {
         "build": "npx tsc -b ./tsconfig.json",
         "publish": "npm publish",
