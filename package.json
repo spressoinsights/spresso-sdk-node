@@ -27,5 +27,17 @@
     },
     "dependencies": {
         "axios": "^1.4.0"
+    },
+    "files": [
+        "dist"
+    ],
+    "homepage": "",
+    "repository": {
+        "type": "git",
+        "url": "",
+        "directory": ""
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
