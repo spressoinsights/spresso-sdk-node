@@ -1,6 +1,6 @@
 {
     "name": "@spressoinsights/spresso_sdk_node",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Spresso SDK for Node",
     "sideEffects": false,
     "private": false,
