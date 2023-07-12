@@ -9,11 +9,9 @@
         "publish": "npm publish",
         "lint": "npx eslint ./src"
     },
-    "author": "",
+    "author": "Spresso",
     "license": "ISC",
     "devDependencies": {
-        "@commitlint/cli": "17.3.0",
-        "@commitlint/config-conventional": "17.3.0",
         "@typescript-eslint/eslint-plugin": "5.29.0",
         "@typescript-eslint/parser": "5.39.0",
         "eslint": "8.18.0",
@@ -21,7 +19,6 @@
         "eslint-import-resolver-typescript": "2.7.1",
         "eslint-plugin-functional": "4.2.1",
         "eslint-plugin-import": "2.26.0",
-        "pretty-quick": "3.1.3",
         "ts-node": "10.8.1",
         "typescript": "4.7.2"
     },
