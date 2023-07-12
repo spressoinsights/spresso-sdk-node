@@ -1,11 +1,12 @@
 {
     "name": "@spresso-sdk/price_optimization",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "description": "Spresso Price Optimization SDK for Node",
     "sideEffects": false,
     "private": false,
     "scripts": {
-        "build": "npx tsc -b ./tsconfig.json",
+        "build": "npx tsc -p ./tsconfig.json",
+        "build:types": "tsc -p ./tsconfig.types.json",
         "lint": "npx eslint ./src"
     },
     "author": "Spresso",
@@ -25,7 +26,8 @@
         "axios": "^1.4.0"
     },
     "files": [
-        "dist"
+        "dist",
+        "dist-types"
     ],
     "homepage": "",
     "repository": {

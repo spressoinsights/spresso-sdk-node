@@ -26,6 +26,8 @@
         "noErrorTruncation": true,
         "esModuleInterop": true,
         "removeComments": true,
-        "outDir": "dist"
-    }
+        "outDir": "dist",
+        "rootDir": "src"
+    },
+    "include": ["src/"]
 }
