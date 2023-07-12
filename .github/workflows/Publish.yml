@@ -7,20 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Nix Package Manager
-        uses: cachix/install-nix-action@v18
-        with:
-          nix_path: nixpkgs=channel:nixos-22.05
-      # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
-      - name: Build        
+      - name: Build
         run: |
           npm ci
-          nix-shell --command "make -f ./commands.nixwrap build"
+          npm run build
       - name: Publish to NPM
-        run: lerna publish from-package --yes
+        run: npm run publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
