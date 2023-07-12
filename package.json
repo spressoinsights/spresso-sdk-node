@@ -1,7 +1,7 @@
 {
-    "name": "@spressoinsights/price_optimization",
-    "version": "2.0.1",
-    "description": "Spresso SDK for Node",
+    "name": "@spresso-sdk/price_optimization",
+    "version": "2.0.2",
+    "description": "Spresso Price Optimization SDK for Node",
     "sideEffects": false,
     "private": false,
     "scripts": {
