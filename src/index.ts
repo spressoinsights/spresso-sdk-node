@@ -5,18 +5,18 @@ const DEFAULT_SOCKET_COUNT = 128;
 const DEFAULT_CONNECTION_TIMEOUT_MS = 500;
 const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
 
-const ENDPOINT = 'https://api.spresso.com';
+const ENDPOINT = 'https://api.staging.spresso.com';
 
 export interface ILogger {
     error(message: string): void;
 }
 
 export type PricingRequest = {
-    defaultPrice: number | undefined;
+    defaultPrice?: number;
     deviceId: string;
-    overrideToDefaultPrice: boolean | undefined;
+    overrideToDefaultPrice?: boolean;
     sku: string;
-    userId: string | undefined;
+    userId?: string;
 };
 
 export type PricingResponse = {
@@ -30,10 +30,10 @@ export type PricingResponse = {
 export type SDKOptions = {
     clientID: string;
     clientSecret: string;
-    connectionTimeoutMS: number | undefined;
-    keepAliveTimeoutMS: number | undefined;
-    logger: ILogger | undefined;
-    socketCount: number | undefined;
+    connectionTimeoutMS?: number;
+    keepAliveTimeoutMS?: number;
+    logger?: ILogger;
+    socketCount?: number;
 };
 
 type AuthResponse = {
