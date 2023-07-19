@@ -1,8 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import https from 'https';
 
+/* TODO:
+    1. DRY up get methods
+    2. Handle bot user agents
+    3. Switch to prod -> optionally accept a param for staging v prod?
+    4. Initial vs subsequent connection timeouts
+*/
+
 const DEFAULT_SOCKET_COUNT = 128;
-const DEFAULT_CONNECTION_TIMEOUT_MS = 500;
+const DEFAULT_CONNECTION_TIMEOUT_MS = 1000;
 const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
 
 const ENDPOINT = 'https://api.staging.spresso.com';
