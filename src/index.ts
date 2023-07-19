@@ -154,6 +154,9 @@ class SpressoSDK {
         }
 
         return this.axiosInstance.request({
+            headers: {
+                'Authorization': this.authHeader()
+            },
             method: 'get',
             url: '/pim/v1/priceOptimizationOrgConfig',
         }).then(response => {
