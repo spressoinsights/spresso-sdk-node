@@ -41,9 +41,20 @@ type AuthResponse = {
     expires_in: number;
 }
 
+type UserAgent = {
+    name: string;
+    regexp: RegExp;
+}
+
+type UserAgentResponse = {
+    name: string;
+    regexp: string;
+}
+
 class SpressoSDK {
     private authToken: string | null = null;
     private readonly axiosInstance: AxiosInstance;
+    private botUserAgents: UserAgent[] = [];
     private readonly clientID: string;
     private readonly clientSecret: string;
     private readonly logger: ILogger | undefined;
@@ -78,28 +89,37 @@ class SpressoSDK {
         });
     }
 
-    async getPrice(request: PricingRequest): Promise<PricingResponse> {
+    async getPrice(request: PricingRequest, userAgent: string): Promise<PricingResponse> {
         const response = await this.makeRequest(
             'get',
             request,
-            undefined
+            undefined,
+            userAgent
         ).catch((err) => {
             this.handleAxiosError(err);
             return this.emptyResponse(request);
         });
 
+        if (response == null) {
+            return this.emptyResponse(request);
+        }
+
         return response as PricingResponse;
     }
 
-    async getPrices(requests: PricingRequest[]): Promise<PricingResponse[]> {
+    async getPrices(requests: PricingRequest[], userAgent: string): Promise<PricingResponse[]> {
         const response = await this.makeRequest(
             'post',
             undefined,
-            { requests }
+            { requests },
+            userAgent
         ).catch((err) => {
             this.handleAxiosError(err);
             return this.emptyResponses(requests);
         });
+        if (response == null) {
+            return this.emptyResponses(requests);
+        }
 
         return response as PricingResponse[];
     }
@@ -126,10 +146,31 @@ class SpressoSDK {
         });
     }
 
+    private async getBotUserAgents(): Promise<void> {
+        if (this.botUserAgents.length == 0) {
+            return Promise.resolve(); // Bot user agent list has already been fetched
+        }
+
+        return this.axiosInstance.request({
+            method: 'get',
+            url: '/v1/priceOptimizationOrgConfig',
+        }).then(response => {
+            const userAgents = response.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
+                return {
+                    name: userAgent.name,
+                    regexp: new RegExp(userAgent.regexp),
+                };
+            });
+            this.botUserAgents = userAgents;
+            console.log(this.botUserAgents);
+        });
+    }
+
     private async makeRequest(
         method: string,
         params: any | undefined,
-        data: any | undefined
+        data: any | undefined,
+        userAgent: string
     ): Promise<any> {
         // 1. Authenticate
         await this.authenticate().catch((err) => {
@@ -137,7 +178,11 @@ class SpressoSDK {
         });
 
         // 2. Check user-agent
-
+        await this.getBotUserAgents().catch(() => {}); // intentional no-op
+        const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
+        if (isBot) {
+            return Promise.resolve(null);
+        }
 
         // 3. Make request
         return this.axiosInstance.request({
