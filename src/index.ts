@@ -66,7 +66,6 @@ class SpressoSDK {
             headers: {
                 Accept: 'application/json',
             },
-            maxRedirects: 0, // Spresso API doesn't redirect
             timeout: options.connectionTimeoutMS ?? DEFAULT_CONNECTION_TIMEOUT_MS,
             validateStatus: (status) => status == 200, // 200 is the only acceptable HTTP response from Spresso
         });
