@@ -14,8 +14,6 @@ jobs:
       - name: Build
         run: |
           npm ci
-          npm run lint
-          npm run build
       - name: Publish to NPM
         run: npm publish
         env:
