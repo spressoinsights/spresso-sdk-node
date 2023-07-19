@@ -7,8 +7,8 @@ const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
 const DEFAULT_SOCKET_COUNT = 128;
 
 export interface ILogger {
-    error(message: string): void;
-    info?(message: string): void;
+    error(message?: any, ...optionalParams: any[]): void;
+    info?(message?: any, ...optionalParams: any[]): void;
 }
 
 export type PricingRequest = {
