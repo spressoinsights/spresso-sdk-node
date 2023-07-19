@@ -1,18 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 import https from 'https';
 
-/* TODO:
-    1. DRY up get methods
-    2. Handle bot user agents
-    3. Switch to prod -> optionally accept a param for staging v prod?
-    4. Initial vs subsequent connection timeouts
-*/
-
-const DEFAULT_SOCKET_COUNT = 128;
+const DEFAULT_ENDPOINT = 'https://api.spresso.com';
 const DEFAULT_CONNECTION_TIMEOUT_MS = 1000;
 const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
-
-const ENDPOINT = 'https://api.staging.spresso.com';
+const DEFAULT_SOCKET_COUNT = 128;
 
 export interface ILogger {
     error(message: string): void;
@@ -38,6 +30,7 @@ export type SDKOptions = {
     clientID: string;
     clientSecret: string;
     connectionTimeoutMS?: number;
+    endpointOverride?: string;
     keepAliveTimeoutMS?: number;
     logger?: ILogger;
     socketCount?: number;
@@ -58,7 +51,7 @@ class SpressoSDK {
 
     constructor(options: SDKOptions) {
         this.axiosInstance = axios.create({
-            baseURL: ENDPOINT,
+            baseURL: options.endpointOverride ?? DEFAULT_ENDPOINT,
             headers: {
                 Accept: 'application/json',
             },
@@ -77,61 +70,36 @@ class SpressoSDK {
         this.clientID = options.clientID;
         this.clientSecret = options.clientSecret;
 
+        // Pre-emptively fetch auth token
         this.authenticate().catch(err => {
             this.logError(err);
         });
     }
 
     async getPrice(request: PricingRequest): Promise<PricingResponse> {
-        await this.authenticate().catch((err) => {
+        const response = await this.makeRequest(
+            'get',
+            request,
+            undefined
+        ).catch((err) => {
             this.logError(err);
             return this.emptyResponse(request);
         });
 
-        return this.axiosInstance.request({
-            headers: {
-                'Authorization': this.authHeader()
-            },
-            method: 'get',
-            url: '/pim/v1/prices',
-            params: request,
-        }).then(response => {
-            if (response.status != 200) {
-                this.logError(response.data);
-                return this.emptyResponse(request);
-            }
-            return response.data as PricingResponse;
-        }).catch((err) => {
-            this.logError(err);
-            return this.emptyResponse(request);
-        });
+        return response as PricingResponse;
     }
 
     async getPrices(requests: PricingRequest[]): Promise<PricingResponse[]> {
-        await this.authenticate().catch((err) => {
+        const response = await this.makeRequest(
+            'post',
+            undefined,
+            requests
+        ).catch((err) => {
             this.logError(err);
             return this.emptyResponses(requests);
         });
 
-        return this.axiosInstance.request({
-            headers: {
-                'Authorization': this.authHeader()
-            },
-            method: 'post',
-            url: '/pim/v1/prices',
-            params: {
-                requests
-            },
-        }).then(response => {
-            if (response.status != 200) {
-                this.logError(response.data);
-                return this.emptyResponses(requests);
-            }
-            return response.data as PricingResponse[]; 
-        }).catch((err) => {
-            this.logError(err);
-            return this.emptyResponses(requests);
-        });
+        return response as PricingResponse[];
     }
 
     private async authenticate(): Promise<void> {
@@ -157,6 +125,38 @@ class SpressoSDK {
             } else {
                 this.logError(response.data);
             }
+        });
+    }
+
+    private async makeRequest(
+        method: string,
+        params: any | undefined,
+        data: any | undefined
+    ): Promise<any> {
+        // 1. Authenticate
+        await this.authenticate().catch((err) => {
+            throw err;
+        });
+
+        // 2. Check user-agent
+
+
+        // 3. Make request
+        return this.axiosInstance.request({
+            headers: {
+                'Authorization': this.authHeader()
+            },
+            method,
+            url: '/pim/v1/prices',
+            params,
+            data,
+        }).then(response => {
+            if (response.status != 200) {
+                throw new Error(response.data);
+            }
+            return response.data;
+        }).catch((err) => {
+            throw err;
         });
     }
 
