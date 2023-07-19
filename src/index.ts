@@ -84,11 +84,9 @@ class SpressoSDK {
         this.clientSecret = options.clientSecret;
 
         // Pre-emptively fetch auth token and bot user agents
-        this.authenticate().then(() => {
-            this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
-        }).catch(err => {
-            this.handleAxiosError(err);
-        });
+        this.authenticate()
+            .then(() => this.getBotUserAgents())
+            .catch(() => {}); // intentional no-op
     }
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
@@ -160,7 +158,7 @@ class SpressoSDK {
             method: 'get',
             url: '/pim/v1/priceOptimizationOrgConfig',
         }).then(response => {
-            const userAgents = response.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
+            const userAgents = response.data.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
                 return {
                     name: userAgent.name,
                     regexp: new RegExp(userAgent.regexp),
@@ -184,7 +182,7 @@ class SpressoSDK {
 
         // 2. Check user-agent
         if (userAgent != undefined) {
-            await this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
+            await this.getBotUserAgents().catch(() => {}); // intentional no-op
             const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
             if (isBot) {
                 return Promise.resolve(null);
