@@ -1,18 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 import https from 'https';
 
-/* TODO:
-    1. DRY up get methods
-    2. Handle bot user agents
-    3. Switch to prod -> optionally accept a param for staging v prod?
-    4. Initial vs subsequent connection timeouts
-*/
-
-const DEFAULT_SOCKET_COUNT = 128;
+const DEFAULT_ENDPOINT = 'https://api.spresso.com';
 const DEFAULT_CONNECTION_TIMEOUT_MS = 1000;
 const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
-
-const ENDPOINT = 'https://api.staging.spresso.com';
+const DEFAULT_SOCKET_COUNT = 128;
 
 export interface ILogger {
     error(message: string): void;
@@ -38,6 +30,7 @@ export type SDKOptions = {
     clientID: string;
     clientSecret: string;
     connectionTimeoutMS?: number;
+    endpointOverride?: string;
     keepAliveTimeoutMS?: number;
     logger?: ILogger;
     socketCount?: number;
@@ -48,9 +41,20 @@ type AuthResponse = {
     expires_in: number;
 }
 
+type UserAgent = {
+    name: string;
+    regexp: RegExp;
+}
+
+type UserAgentResponse = {
+    name: string;
+    regexp: string;
+}
+
 class SpressoSDK {
     private authToken: string | null = null;
     private readonly axiosInstance: AxiosInstance;
+    private botUserAgents: UserAgent[] = [];
     private readonly clientID: string;
     private readonly clientSecret: string;
     private readonly logger: ILogger | undefined;
@@ -58,11 +62,12 @@ class SpressoSDK {
 
     constructor(options: SDKOptions) {
         this.axiosInstance = axios.create({
-            baseURL: ENDPOINT,
+            baseURL: options.endpointOverride ?? DEFAULT_ENDPOINT,
             headers: {
                 Accept: 'application/json',
             },
             timeout: options.connectionTimeoutMS ?? DEFAULT_CONNECTION_TIMEOUT_MS,
+            validateStatus: (status) => status == 200, // 200 is the only acceptable HTTP response from Spresso
         });
 
         // Use Keep-alive
@@ -77,61 +82,46 @@ class SpressoSDK {
         this.clientID = options.clientID;
         this.clientSecret = options.clientSecret;
 
-        this.authenticate().catch(err => {
-            this.logError(err);
-        });
+        // Pre-emptively fetch auth token and bot user agents
+        this.authenticate()
+            .then(() => this.getBotUserAgents())
+            .catch(() => {}); // intentional no-op
     }
 
-    async getPrice(request: PricingRequest): Promise<PricingResponse> {
-        await this.authenticate().catch((err) => {
-            this.logError(err);
+    async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
+        const response = await this.makeRequest(
+            'get',
+            request,
+            undefined,
+            userAgent
+        ).catch((err) => {
+            this.handleAxiosError(err);
             return this.emptyResponse(request);
         });
 
-        return this.axiosInstance.request({
-            headers: {
-                'Authorization': this.authHeader()
-            },
-            method: 'get',
-            url: '/pim/v1/prices',
-            params: request,
-        }).then(response => {
-            if (response.status != 200) {
-                this.logError(response.data);
-                return this.emptyResponse(request);
-            }
-            return response.data as PricingResponse;
-        }).catch((err) => {
-            this.logError(err);
+        if (response == null) {
             return this.emptyResponse(request);
-        });
+        }
+
+        return response as PricingResponse;
     }
 
-    async getPrices(requests: PricingRequest[]): Promise<PricingResponse[]> {
-        await this.authenticate().catch((err) => {
-            this.logError(err);
+    async getPrices(requests: PricingRequest[], userAgent: string | undefined): Promise<PricingResponse[]> {
+        const response = await this.makeRequest(
+            'post',
+            undefined,
+            { requests },
+            userAgent
+        ).catch((err) => {
+            this.handleAxiosError(err);
             return this.emptyResponses(requests);
         });
 
-        return this.axiosInstance.request({
-            headers: {
-                'Authorization': this.authHeader()
-            },
-            method: 'post',
-            url: '/pim/v1/prices',
-            params: {
-                requests
-            },
-        }).then(response => {
-            if (response.status != 200) {
-                this.logError(response.data);
-                return this.emptyResponses(requests);
-            }
-            return response.data as PricingResponse[]; 
-        }).catch((err) => {
-            this.logError(err);
+        if (response == null) {
             return this.emptyResponses(requests);
-        });
+        }
+
+        return response as PricingResponse[];
     }
 
     private async authenticate(): Promise<void> {
@@ -150,13 +140,65 @@ class SpressoSDK {
                 grant_type: 'client_credentials',
             },
         }).then(response => {
-            if (response.status == 200) {
-                const authResponse = (response.data as AuthResponse);
-                this.authToken = authResponse.access_token;
-                this.tokenExpiration = now + (authResponse.expires_in * 1000);
-            } else {
-                this.logError(response.data);
+            const authResponse = (response.data as AuthResponse);
+            this.authToken = authResponse.access_token;
+            this.tokenExpiration = now + (authResponse.expires_in * 1000);
+        });
+    }
+
+    private async getBotUserAgents(): Promise<void> {
+        if (this.botUserAgents.length != 0) {
+            return Promise.resolve(); // Bot user agent list has already been fetched
+        }
+
+        return this.axiosInstance.request({
+            headers: {
+                'Authorization': this.authHeader()
+            },
+            method: 'get',
+            url: '/pim/v1/priceOptimizationOrgConfig',
+        }).then(response => {
+            const userAgents = response.data.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
+                return {
+                    name: userAgent.name,
+                    regexp: new RegExp(userAgent.regexp),
+                };
+            });
+            this.botUserAgents = userAgents;
+        });
+    }
+
+    private async makeRequest(
+        method: string,
+        params: any | undefined,
+        data: any | undefined,
+        userAgent: string | undefined
+    ): Promise<any> {
+        // 1. Authenticate
+        await this.authenticate().catch((err) => {
+            throw err;
+        });
+
+        // 2. Check user-agent
+        if (userAgent != undefined) {
+            await this.getBotUserAgents().catch(() => {}); // intentional no-op
+            const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
+            if (isBot) {
+                return Promise.resolve(null);
             }
+        }
+
+        // 3. Make request
+        return this.axiosInstance.request({
+            headers: {
+                'Authorization': this.authHeader()
+            },
+            method,
+            url: '/pim/v1/prices',
+            params,
+            data,
+        }).then(response => {
+            return response.data;
         });
     }
 
@@ -178,8 +220,21 @@ class SpressoSDK {
         return requests.map(request => this.emptyResponse(request));
     }
 
-    private logError(err: unknown): void {
-        const errMsg = `Spresso API Error: ${JSON.stringify(err)}`;
+    private handleAxiosError(err: { response?: any, request?: any}): void {
+        if (err.response) {
+            // Server responded with non-200 code
+            this.logError(JSON.stringify(err.response.data));
+          } else if (err.request) {
+            // Request was sent, but no response received
+            this.logError("No response from Spresso");
+          } else {
+            // Unknown error
+            this.logError('Unknown error');
+          }
+    }
+
+    private logError(msg: string): void {
+        const errMsg = `Spresso API Error: ${msg}`;
         if (this.logger != undefined) {
             this.logger.error(errMsg);
         } else {
