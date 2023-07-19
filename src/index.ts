@@ -84,11 +84,11 @@ class SpressoSDK {
         this.clientSecret = options.clientSecret;
 
         // Pre-emptively fetch auth token and bot user agents
-        this.authenticate().catch(err => {
+        this.authenticate().then(() => {
+            this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
+        }).catch(err => {
             this.handleAxiosError(err);
         });
-
-        this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
     }
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
