@@ -88,7 +88,7 @@ class SpressoSDK {
             this.handleAxiosError(err);
         });
 
-        this.getBotUserAgents().catch(() => {}); // intentional no-op
+        this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
     }
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
@@ -149,7 +149,7 @@ class SpressoSDK {
     }
 
     private async getBotUserAgents(): Promise<void> {
-        if (this.botUserAgents.length == 0) {
+        if (this.botUserAgents.length != 0) {
             return Promise.resolve(); // Bot user agent list has already been fetched
         }
 
@@ -181,7 +181,7 @@ class SpressoSDK {
 
         // 2. Check user-agent
         if (userAgent != undefined) {
-            await this.getBotUserAgents().catch(() => {}); // intentional no-op
+            await this.getBotUserAgents().catch((err) => console.log(err)); // intentional no-op
             const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
             if (isBot) {
                 return Promise.resolve(null);
