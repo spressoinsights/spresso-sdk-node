@@ -83,13 +83,15 @@ class SpressoSDK {
         this.clientID = options.clientID;
         this.clientSecret = options.clientSecret;
 
-        // Pre-emptively fetch auth token
+        // Pre-emptively fetch auth token and bot user agents
         this.authenticate().catch(err => {
             this.handleAxiosError(err);
         });
+
+        this.getBotUserAgents().catch(() => {}); // intentional no-op
     }
 
-    async getPrice(request: PricingRequest, userAgent: string): Promise<PricingResponse> {
+    async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
         const response = await this.makeRequest(
             'get',
             request,
@@ -107,7 +109,7 @@ class SpressoSDK {
         return response as PricingResponse;
     }
 
-    async getPrices(requests: PricingRequest[], userAgent: string): Promise<PricingResponse[]> {
+    async getPrices(requests: PricingRequest[], userAgent: string | undefined): Promise<PricingResponse[]> {
         const response = await this.makeRequest(
             'post',
             undefined,
@@ -170,7 +172,7 @@ class SpressoSDK {
         method: string,
         params: any | undefined,
         data: any | undefined,
-        userAgent: string
+        userAgent: string | undefined
     ): Promise<any> {
         // 1. Authenticate
         await this.authenticate().catch((err) => {
@@ -178,10 +180,12 @@ class SpressoSDK {
         });
 
         // 2. Check user-agent
-        await this.getBotUserAgents().catch(() => {}); // intentional no-op
-        const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
-        if (isBot) {
-            return Promise.resolve(null);
+        if (userAgent != undefined) {
+            await this.getBotUserAgents().catch(() => {}); // intentional no-op
+            const isBot = this.botUserAgents.some(botUserAgent => botUserAgent.regexp.test(userAgent));
+            if (isBot) {
+                return Promise.resolve(null);
+            }
         }
 
         // 3. Make request
