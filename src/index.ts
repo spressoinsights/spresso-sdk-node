@@ -83,7 +83,10 @@ class SpressoSDK {
             'get',
             request,
             undefined
-        ).catch(() => this.emptyResponse(request));
+        ).catch((err) => {
+            this.handleAxiosError(err);
+            return this.emptyResponse(request);
+        });
 
         return response as PricingResponse;
     }
@@ -93,7 +96,10 @@ class SpressoSDK {
             'post',
             undefined,
             { requests }
-        ).catch(() => this.emptyResponses(requests));
+        ).catch((err) => {
+            this.handleAxiosError(err);
+            return this.emptyResponses(requests);
+        });
 
         return response as PricingResponse[];
     }
@@ -127,7 +133,7 @@ class SpressoSDK {
     ): Promise<any> {
         // 1. Authenticate
         await this.authenticate().catch((err) => {
-            this.handleAxiosError(err);
+            throw err;
         });
 
         // 2. Check user-agent
@@ -144,8 +150,6 @@ class SpressoSDK {
             data,
         }).then(response => {
             return response.data;
-        }).catch((err) => {
-            this.handleAxiosError(err);
         });
     }
 
