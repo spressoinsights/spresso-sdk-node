@@ -8,6 +8,7 @@ const DEFAULT_SOCKET_COUNT = 128;
 
 export interface ILogger {
     error(message: string): void;
+    info?(message: string): void;
 }
 
 export type PricingRequest = {
@@ -130,6 +131,7 @@ class SpressoSDK {
             return Promise.resolve(); // Current token is valid and non-expired, no need to refetch
         }
 
+        this.logInfo('Authenticating Spresso API...');
         return this.axiosInstance.request({
             method: 'post',
             url: '/identity/v1/public/token',
@@ -140,6 +142,7 @@ class SpressoSDK {
                 grant_type: 'client_credentials',
             },
         }).then(response => {
+            this.logInfo('Spresso Authentication Successful!');
             const authResponse = (response.data as AuthResponse);
             this.authToken = authResponse.access_token;
             this.tokenExpiration = now + (authResponse.expires_in * 1000);
@@ -151,6 +154,7 @@ class SpressoSDK {
             return Promise.resolve(); // Bot user agent list has already been fetched
         }
 
+        this.logInfo('Fetch Bot user-agent list...');
         return this.axiosInstance.request({
             headers: {
                 'Authorization': this.authHeader()
@@ -158,6 +162,7 @@ class SpressoSDK {
             method: 'get',
             url: '/pim/v1/priceOptimizationOrgConfig',
         }).then(response => {
+            this.logInfo('Bot user-agent list fetched!');
             const userAgents = response.data.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
                 return {
                     name: userAgent.name,
@@ -239,6 +244,12 @@ class SpressoSDK {
             this.logger.error(errMsg);
         } else {
             console.log(errMsg);
+        }
+    }
+
+    private logInfo(msg: string): void {
+        if (this.logger != undefined && this.logger.info != undefined) {
+            this.logger.info(msg);
         }
     }
 }
