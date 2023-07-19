@@ -117,6 +117,7 @@ class SpressoSDK {
             this.handleAxiosError(err);
             return this.emptyResponses(requests);
         });
+
         if (response == null) {
             return this.emptyResponses(requests);
         }
@@ -165,7 +166,6 @@ class SpressoSDK {
                 };
             });
             this.botUserAgents = userAgents;
-            console.log(this.botUserAgents);
         });
     }
 

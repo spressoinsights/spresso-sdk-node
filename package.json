@@ -1,6 +1,6 @@
 {
   "name": "@spresso-sdk/price_optimization",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "description": "Spresso Price Optimization SDK for Node",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
