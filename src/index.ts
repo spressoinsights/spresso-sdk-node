@@ -155,7 +155,7 @@ class SpressoSDK {
 
         return this.axiosInstance.request({
             method: 'get',
-            url: '/v1/priceOptimizationOrgConfig',
+            url: '/pim/v1/priceOptimizationOrgConfig',
         }).then(response => {
             const userAgents = response.data.userAgentBlacklist.map((userAgent: UserAgentResponse) => {
                 return {
