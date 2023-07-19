@@ -55,7 +55,9 @@ class SpressoSDK {
             headers: {
                 Accept: 'application/json',
             },
+            maxRedirects: 0, // Spresso API doesn't redirect
             timeout: options.connectionTimeoutMS ?? DEFAULT_CONNECTION_TIMEOUT_MS,
+            validateStatus: (status) => status == 200, // 200 is the only acceptable HTTP response from Spresso
         });
 
         // Use Keep-alive
@@ -72,7 +74,7 @@ class SpressoSDK {
 
         // Pre-emptively fetch auth token
         this.authenticate().catch(err => {
-            this.logError(err);
+            this.handleAxiosError(err);
         });
     }
 
@@ -81,10 +83,7 @@ class SpressoSDK {
             'get',
             request,
             undefined
-        ).catch((err) => {
-            this.logError(err);
-            return this.emptyResponse(request);
-        });
+        ).catch(() => this.emptyResponse(request));
 
         return response as PricingResponse;
     }
@@ -93,11 +92,8 @@ class SpressoSDK {
         const response = await this.makeRequest(
             'post',
             undefined,
-            requests
-        ).catch((err) => {
-            this.logError(err);
-            return this.emptyResponses(requests);
-        });
+            { requests }
+        ).catch(() => this.emptyResponses(requests));
 
         return response as PricingResponse[];
     }
@@ -118,13 +114,9 @@ class SpressoSDK {
                 grant_type: 'client_credentials',
             },
         }).then(response => {
-            if (response.status == 200) {
-                const authResponse = (response.data as AuthResponse);
-                this.authToken = authResponse.access_token;
-                this.tokenExpiration = now + (authResponse.expires_in * 1000);
-            } else {
-                this.logError(response.data);
-            }
+            const authResponse = (response.data as AuthResponse);
+            this.authToken = authResponse.access_token;
+            this.tokenExpiration = now + (authResponse.expires_in * 1000);
         });
     }
 
@@ -135,7 +127,7 @@ class SpressoSDK {
     ): Promise<any> {
         // 1. Authenticate
         await this.authenticate().catch((err) => {
-            throw err;
+            this.handleAxiosError(err);
         });
 
         // 2. Check user-agent
@@ -151,12 +143,9 @@ class SpressoSDK {
             params,
             data,
         }).then(response => {
-            if (response.status != 200) {
-                throw new Error(response.data);
-            }
             return response.data;
         }).catch((err) => {
-            throw err;
+            this.handleAxiosError(err);
         });
     }
 
@@ -178,8 +167,21 @@ class SpressoSDK {
         return requests.map(request => this.emptyResponse(request));
     }
 
-    private logError(err: unknown): void {
-        const errMsg = `Spresso API Error: ${JSON.stringify(err)}`;
+    private handleAxiosError(err: { response?: any, request?: any}): void {
+        if (err.response) {
+            // Server responded with non-200 code
+            this.logError(JSON.stringify(err.response.data));
+          } else if (err.request) {
+            // Request was sent, but no response received
+            this.logError("No response from Spresso");
+          } else {
+            // Unknown error
+            this.logError('Unknown error');
+          }
+    }
+
+    private logError(msg: string): void {
+        const errMsg = `Spresso API Error: ${msg}`;
         if (this.logger != undefined) {
             this.logger.error(errMsg);
         } else {
