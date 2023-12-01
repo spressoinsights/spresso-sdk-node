@@ -6,6 +6,9 @@ const DEFAULT_CONNECTION_TIMEOUT_MS = 1000;
 const DEFAULT_KEEPALIVE_TIMEOUT_MS = 30000;
 const DEFAULT_SOCKET_COUNT = 128;
 
+// 30 minute expiration padding for auth tokens
+const AUTH_EXPIRATION_PAD_MS = 30 * 60 * 1000;
+
 export interface ILogger {
     error(message?: any, ...optionalParams: any[]): void;
     info?(message?: any, ...optionalParams: any[]): void;
@@ -15,7 +18,7 @@ export type PricingRequest = {
     defaultPrice?: number;
     deviceId: string;
     overrideToDefaultPrice?: boolean;
-    sku: string;
+    itemId: string;
     userId?: string;
 };
 
@@ -23,7 +26,7 @@ export type PricingResponse = {
     deviceId: string;
     isPriceOptimized: boolean;
     price: number | null;
-    sku: string;
+    itemId: string;
     userId: string | null;
 };
 
@@ -90,44 +93,52 @@ class SpressoSDK {
     }
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
-        const response = await this.makeRequest(
-            'get',
-            request,
-            undefined,
-            userAgent
-        ).catch((err) => {
-            this.handleAxiosError(err);
-            return this.emptyResponse(request);
-        });
+        try {
+            const response = await this.makeRequest(
+                'get',
+                request,
+                undefined,
+                userAgent
+            ).catch((err) => {
+                this.handleAxiosError(err);
+                return this.emptyResponse(request);
+            });
 
-        if (response == null) {
+            if (response == null) {
+                return this.emptyResponse(request);
+            }
+
+            return response as PricingResponse;
+        } catch (err) {
             return this.emptyResponse(request);
         }
-
-        return response as PricingResponse;
     }
 
     async getPrices(requests: PricingRequest[], userAgent: string | undefined): Promise<PricingResponse[]> {
-        const response = await this.makeRequest(
-            'post',
-            undefined,
-            { requests },
-            userAgent
-        ).catch((err) => {
-            this.handleAxiosError(err);
-            return this.emptyResponses(requests);
-        });
+        try {
+            const response = await this.makeRequest(
+                'post',
+                undefined,
+                { requests },
+                userAgent
+            ).catch((err) => {
+                this.handleAxiosError(err);
+                return this.emptyResponses(requests);
+            });
 
-        if (response == null) {
+            if (response == null) {
+                return this.emptyResponses(requests);
+            }
+
+            return response as PricingResponse[];
+        } catch (err) {
             return this.emptyResponses(requests);
         }
-
-        return response as PricingResponse[];
     }
 
     private async authenticate(): Promise<void> {
         const now = new Date().getTime();
-        if (this.authToken != null && this.tokenExpiration != null && now < this.tokenExpiration) {
+        if (this.authToken != null && this.tokenExpiration != null && now < (this.tokenExpiration - AUTH_EXPIRATION_PAD_MS)) {
             return Promise.resolve(); // Current token is valid and non-expired, no need to refetch
         }
 
@@ -216,7 +227,7 @@ class SpressoSDK {
             deviceId: request.deviceId,
             isPriceOptimized: false,
             price: request.defaultPrice ?? null,
-            sku: request.sku,
+            itemId: request.itemId,
             userId: request.userId ?? null,
         };
     }
