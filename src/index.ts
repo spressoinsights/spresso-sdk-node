@@ -58,7 +58,7 @@ type UserAgentResponse = {
 type OptimizedSkuResponse = {
     expiresAt: number;
     skus: string[];
-    skipInactive: false;
+    skipInactive: boolean;
 };
 
 class SpressoSDK {
@@ -105,9 +105,7 @@ class SpressoSDK {
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
         try {
-            const isOptimized = this.optimizedSkus.has(request.itemId);
-            if (this.skipInactive && !isOptimized) {
-                this.logInfo('Non-Optimized SKU, short-circuiting...');
+            if (this.skipInactiveSkus([request])) {
                 return this.emptyResponse(request);
             }
 
@@ -133,13 +131,7 @@ class SpressoSDK {
 
     async getPrices(requests: PricingRequest[], userAgent: string | undefined): Promise<PricingResponse[]> {
         try {
-            /* We only skip if ALL skus are non optimized
-             * Why? The point of this is to minimize the API roundtrip.
-             * If even one sku IS optimized we won't be able to skip, so no point adding the extra complexity of partial skips
-             */
-            const someOptimized = requests.some(request => this.optimizedSkus.has(request.itemId));
-            if (this.skipInactive && !someOptimized) {
-                this.logInfo('All SKUs are Non-Optimized, short-circuiting...');
+            if (this.skipInactiveSkus(requests)) {
                 return this.emptyResponses(requests);
             }
 
@@ -161,6 +153,24 @@ class SpressoSDK {
         } catch (err) {
             return this.emptyResponses(requests);
         }
+    }
+
+    private skipInactiveSkus(requests: PricingRequest[]): boolean {
+        // Fetch optimized skus, don't await!
+        this.getOptimizedSkus().catch(() => {});
+
+        /* We only skip if ALL skus are non optimized
+         * Why? The point of this is to minimize the API roundtrip.
+         * If even one sku IS optimized we won't be able to skip, so no point adding the extra complexity of partial skips
+         */
+        const someOptimized = requests.some(request => this.optimizedSkus.has(request.itemId));
+        if (this.skipInactive && !someOptimized) {
+            this.logInfo('All SKUs are non-optimized, short-circuiting...');
+            return true;
+        }
+
+        this.logInfo('Found optimized SKU, making API request...');
+        return false;
     }
 
     private async authenticate(): Promise<void> {
@@ -253,10 +263,7 @@ class SpressoSDK {
             }
         }
 
-        // 3. Fetch optimized skus, don't await!
-        this.getOptimizedSkus().catch(() => {});
-
-        // 4. Make request
+        // 3. Make request
         return this.axiosInstance.request({
             headers: {
                 'Authorization': this.authHeader()
