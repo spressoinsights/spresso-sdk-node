@@ -61,6 +61,10 @@ type OptimizedSkuResponse = {
     skipInactive: boolean;
 };
 
+const isBlank = (val: any) => {
+    return val == null || val == undefined || String(val).trim().length === 0;
+};
+
 class SpressoSDK {
     private authToken: string | null = null;
     private readonly axiosInstance: AxiosInstance;
@@ -105,7 +109,7 @@ class SpressoSDK {
 
     async getPrice(request: PricingRequest, userAgent: string | undefined): Promise<PricingResponse> {
         try {
-            if (this.skipInactiveSkus([request])) {
+            if (this.skipApiRequest([request])) {
                 return this.emptyResponse(request);
             }
 
@@ -131,7 +135,7 @@ class SpressoSDK {
 
     async getPrices(requests: PricingRequest[], userAgent: string | undefined): Promise<PricingResponse[]> {
         try {
-            if (this.skipInactiveSkus(requests)) {
+            if (this.skipApiRequest(requests)) {
                 return this.emptyResponses(requests);
             }
 
@@ -155,7 +159,14 @@ class SpressoSDK {
         }
     }
 
-    private skipInactiveSkus(requests: PricingRequest[]): boolean {
+    private skipApiRequest(requests: PricingRequest[]): boolean {
+        // ANY missing device ID in batch will cause a 400 from our API, so we skip to avoid 400's on server
+        const hasMissingDeviceId = requests.some((request) => isBlank(request.deviceId));
+        if (hasMissingDeviceId) {
+            this.logInfo('Missing deviceId, short-circuiting...');
+            return true;
+        }
+
         // Fetch optimized skus, don't await!
         this.getOptimizedSkus().catch(() => {});
 
@@ -175,7 +186,7 @@ class SpressoSDK {
 
     private async authenticate(): Promise<void> {
         const now = new Date().getTime();
-        if (this.authToken != null && this.tokenExpiration != null && now < (this.tokenExpiration - AUTH_EXPIRATION_PAD_MS)) {
+        if (this.isTokenValid(now)) {
             return Promise.resolve(); // Current token is valid and non-expired, no need to refetch
         }
 
@@ -198,8 +209,8 @@ class SpressoSDK {
     }
 
     private async getBotUserAgents(): Promise<void> {
-        if (this.botUserAgents.length != 0) {
-            return Promise.resolve(); // Bot user agent list has already been fetched
+        if (this.botUserAgents.length != 0 || !this.isTokenValid(new Date().getTime())) {
+            return Promise.resolve(); // Bot user agent list has already been fetched OR we have no token, skip fetch
         }
 
         this.logInfo('Fetch Bot user-agent list...');
@@ -223,8 +234,8 @@ class SpressoSDK {
 
     private async getOptimizedSkus(): Promise<void> {
         const now = new Date().getTime();
-        if (this.skuExpiration != null && now < this.skuExpiration) {
-            return Promise.resolve(); // Optimized skus has already been fetched and has not expired
+        if ((this.skuExpiration != null && now < this.skuExpiration) || !this.isTokenValid(now)) {
+            return Promise.resolve(); // Optimized skus has already been fetched and has not expired OR we have no token, skip fetch
         }
 
         this.logInfo('Fetching optimized skus...');
@@ -275,6 +286,10 @@ class SpressoSDK {
         }).then(response => {
             return response.data;
         });
+    }
+
+    private isTokenValid(now: number): boolean {
+        return this.authToken != null && this.tokenExpiration != null && now < (this.tokenExpiration - AUTH_EXPIRATION_PAD_MS);
     }
 
     private authHeader(): string {
